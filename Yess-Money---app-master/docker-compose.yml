@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  backend:
+    build: 
+      context: ./yess-backend
+      dockerfile: Dockerfile.dev
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./yess-backend:/app
+    environment:
+      - DATABASE_URL=postgresql://yess_user:password@postgres:5432/yess_loyalty
+      - ENVIRONMENT=development
+    depends_on:
+      - postgres
+
+  frontend:
+    build: 
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - REACT_APP_API_URL=http://backend:8000/api
+      - CHOKIDAR_USEPOLLING=true
+    depends_on:
+      - backend
+
+  postgres:
+    image: postgres:13
+    environment:
+      - POSTGRES_DB=yess_loyalty
+      - POSTGRES_USER=yess_user
+      - POSTGRES_PASSWORD=password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  pgadmin:
+    image: dpage/pgadmin4
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=admin@yessloyalty.com
+      - PGADMIN_DEFAULT_PASSWORD=admin
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+
+volumes:
+  postgres_data:
