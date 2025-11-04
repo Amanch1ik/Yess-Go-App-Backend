@@ -19,7 +19,7 @@ from app.models.city import City
 from app.models.partner import Partner, PartnerLocation, PartnerEmployee
 from app.models.transaction import Transaction
 from app.models.order import Order
-from app.models.agent import Agent, Referral, AgentPartnerBonus
+# from app.models.agent import Agent, Referral, AgentPartnerBonus  # Model not implemented yet
 from app.models.promotion import Promotion
 
 # this is the Alembic Config object

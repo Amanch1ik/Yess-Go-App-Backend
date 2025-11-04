@@ -56,8 +56,8 @@ class User(Base):
     roles = relationship("UserRole", back_populates="user")
     transactions = relationship("Transaction", back_populates="user")
     orders = relationship("Order", back_populates="user")
-    agent = relationship("Agent", back_populates="user", uselist=False)
-    referrals_given = relationship("Referral", foreign_keys="Referral.referred_user_id", back_populates="referred_user")
+    # agent = relationship("Agent", back_populates="user", uselist=False)
+    # referrals_given = relationship("Referral", foreign_keys="Referral.referred_user_id", back_populates="referred_user")
     
     # Оптимизированные индексы для частых запросов
     __table_args__ = (

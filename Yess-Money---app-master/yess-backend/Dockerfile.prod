@@ -1,27 +1,36 @@
+# -----------------------------
+# 🐍 Dockerfile.prod — Yess Backend
+# -----------------------------
+
 FROM python:3.9-slim
 
-WORKDIR /app
-
-# Установка системных зависимостей
+# Устанавливаем системные зависимости + wait-for-it
 RUN apt-get update && apt-get install -y \
     build-essential \
     libpq-dev \
+    curl \
+    bash \
     && rm -rf /var/lib/apt/lists/*
 
-# Копирование requirements
+# Устанавливаем wait-for-it — правильный RAW URL
+RUN curl -sSL https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh \
+    -o /usr/local/bin/wait-for-it \
+    && chmod +x /usr/local/bin/wait-for-it
+
+# Рабочая директория
+WORKDIR /app
+
+# Копируем список зависимостей
 COPY requirements.txt .
 
-# Установка зависимостей Python
+# Устанавливаем Python-зависимости
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Копирование кода приложения
+# Копируем весь код проекта
 COPY . .
 
-# Миграции базы данных
-RUN alembic upgrade head
-
-# Expose порт
+# Открываем порт
 EXPOSE 8000
 
-# Команда запуска
-CMD ["gunicorn", "-w", "4", "-k", "uvicorn.workers.UvicornWorker", "app.main:app", "--bind", "0.0.0.0:8000"]
+# Команда запуска (ждём PostgreSQL → миграции → uvicorn)
+CMD ["bash", "-c", "wait-for-it postgres:5432 -t 60 && alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"]

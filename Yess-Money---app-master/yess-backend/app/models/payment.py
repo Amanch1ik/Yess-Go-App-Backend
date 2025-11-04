@@ -25,80 +25,82 @@ class PaymentStatusEnum(str, enum.Enum):
     FAILED = "failed"
     CANCELLED = "cancelled"
 
-class Transaction(Base):
-    """Модель транзакции"""
-    __tablename__ = "transactions"
-    
-    id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
-    
-    # Основные данные транзакции
-    amount = Column(Float, nullable=False)  # Сумма в сомах
-    commission = Column(Float, default=0.0)  # Комиссия
-    total_amount = Column(Float, nullable=False)  # Общая сумма (amount + commission)
-    
-    # Метод оплаты и статус
-    payment_method = Column(Enum(PaymentMethodEnum), nullable=False)
-    status = Column(Enum(PaymentStatusEnum), default=PaymentStatusEnum.PENDING)
-    
-    # Временные метки
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-    processed_at = Column(DateTime(timezone=True), nullable=True)
-    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
-    
-    # Дополнительная информация
-    gateway_transaction_id = Column(String(255), nullable=True)  # ID транзакции в платежном шлюзе
-    gateway_response = Column(Text, nullable=True)  # Ответ от платежного шлюза
-    error_message = Column(Text, nullable=True)  # Сообщение об ошибке
-    
-    # Метаданные
-    phone_number = Column(String(20), nullable=True)  # Номер телефона для мобильных платежей
-    card_last_four = Column(String(4), nullable=True)  # Последние 4 цифры карты
-    ip_address = Column(String(45), nullable=True)  # IP адрес пользователя
-    user_agent = Column(Text, nullable=True)  # User Agent браузера/приложения
-    
-    # Связи
-    user = relationship("User", back_populates="transactions")
-    refunds = relationship("Refund", back_populates="transaction")
-    
-    def __repr__(self):
-        return f"<Transaction(id={self.id}, user_id={self.user_id}, amount={self.amount}, status={self.status})>"
+# Transaction model is defined in transaction.py to avoid duplicate table definition
+# class Transaction(Base):
+#     """Модель транзакции"""
+#     __tablename__ = "transactions"
+#     
+#     id = Column(Integer, primary_key=True, index=True)
+#     user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+#     
+#     # Основные данные транзакции
+#     amount = Column(Float, nullable=False)  # Сумма в сомах
+#     commission = Column(Float, default=0.0)  # Комиссия
+#     total_amount = Column(Float, nullable=False)  # Общая сумма (amount + commission)
+#     
+#     # Метод оплаты и статус
+#     payment_method = Column(Enum(PaymentMethodEnum), nullable=False)
+#     status = Column(Enum(PaymentStatusEnum), default=PaymentStatusEnum.PENDING)
+#     
+#     # Временные метки
+#     created_at = Column(DateTime(timezone=True), server_default=func.now())
+#     processed_at = Column(DateTime(timezone=True), nullable=True)
+#     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+#     
+#     # Дополнительная информация
+#     gateway_transaction_id = Column(String(255), nullable=True)  # ID транзакции в платежном шлюзе
+#     gateway_response = Column(Text, nullable=True)  # Ответ от платежного шлюза
+#     error_message = Column(Text, nullable=True)  # Сообщение об ошибке
+#     
+#     # Метаданные
+#     phone_number = Column(String(20), nullable=True)  # Номер телефона для мобильных платежей
+#     card_last_four = Column(String(4), nullable=True)  # Последние 4 цифры карты
+#     ip_address = Column(String(45), nullable=True)  # IP адрес пользователя
+#     user_agent = Column(Text, nullable=True)  # User Agent браузера/приложения
+#     
+#     # Связи
+#     user = relationship("User", back_populates="transactions")
+#     refunds = relationship("Refund", back_populates="transaction")
+#     
+#     def __repr__(self):
+#         return f"<Transaction(id={self.id}, user_id={self.user_id}, amount={self.amount}, status={self.status})>"
 
-class Wallet(Base):
-    """Модель кошелька пользователя"""
-    __tablename__ = "wallets"
-    
-    id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, unique=True, index=True)
-    
-    # Баланс
-    balance = Column(Float, default=0.0)  # Текущий баланс в сомах
-    currency = Column(String(3), default="KGS")  # Валюта
-    
-    # Лимиты
-    daily_limit = Column(Float, default=50000.0)  # Дневной лимит
-    monthly_limit = Column(Float, default=500000.0)  # Месячный лимит
-    single_transaction_limit = Column(Float, default=100000.0)  # Лимит одной транзакции
-    
-    # Статистика использования лимитов
-    daily_used = Column(Float, default=0.0)  # Использовано за день
-    monthly_used = Column(Float, default=0.0)  # Использовано за месяц
-    last_daily_reset = Column(DateTime(timezone=True), server_default=func.now())
-    last_monthly_reset = Column(DateTime(timezone=True), server_default=func.now())
-    
-    # Временные метки
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
-    
-    # Статус
-    is_active = Column(Boolean, default=True)
-    is_frozen = Column(Boolean, default=False)  # Заморожен ли кошелек
-    
-    # Связи
-    user = relationship("User", back_populates="wallet")
-    
-    def __repr__(self):
-        return f"<Wallet(user_id={self.user_id}, balance={self.balance})>"
+# Wallet model is defined in wallet.py to avoid duplicate table definition
+# class Wallet(Base):
+#     """Модель кошелька пользователя"""
+#     __tablename__ = "wallets"
+#     
+#     id = Column(Integer, primary_key=True, index=True)
+#     user_id = Column(Integer, ForeignKey("users.id"), nullable=False, unique=True, index=True)
+#     
+#     # Баланс
+#     balance = Column(Float, default=0.0)  # Текущий баланс в сомах
+#     currency = Column(String(3), default="KGS")  # Валюта
+#     
+#     # Лимиты
+#     daily_limit = Column(Float, default=50000.0)  # Дневной лимит
+#     monthly_limit = Column(Float, default=500000.0)  # Месячный лимит
+#     single_transaction_limit = Column(Float, default=100000.0)  # Лимит одной транзакции
+#     
+#     # Статистика использования лимитов
+#     daily_used = Column(Float, default=0.0)  # Использовано за день
+#     monthly_used = Column(Float, default=0.0)  # Использовано за месяц
+#     last_daily_reset = Column(DateTime(timezone=True), server_default=func.now())
+#     last_monthly_reset = Column(DateTime(timezone=True), server_default=func.now())
+#     
+#     # Временные метки
+#     created_at = Column(DateTime(timezone=True), server_default=func.now())
+#     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+#     
+#     # Статус
+#     is_active = Column(Boolean, default=True)
+#     is_frozen = Column(Boolean, default=False)  # Заморожен ли кошелек
+#     
+#     # Связи
+#     user = relationship("User", back_populates="wallet")
+#     
+#     def __repr__(self):
+#         return f"<Wallet(user_id={self.user_id}, balance={self.balance})>"
 
 class Refund(Base):
     """Модель возврата средств"""

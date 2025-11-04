@@ -2,10 +2,14 @@
 
 from fastapi import APIRouter
 import logging
+from .endpoints import health
+
 
 logger = logging.getLogger(__name__)
 
 api_router = APIRouter()
+api_router.include_router(health.router, tags=["Health"])
+
 
 # Включение роутов (с обработкой ошибок, если модули недоступны)
 try:

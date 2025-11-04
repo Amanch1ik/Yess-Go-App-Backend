@@ -10,12 +10,14 @@ from fastapi.responses import JSONResponse
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
-from app.core.config import settings
+from app.core.config import get_settings  # ✅ Импортируем функцию, а не объект
 
 logger = logging.getLogger(__name__)
 
+# ✅ Инициализируем настройки корректно
+settings = get_settings()
 
-# Инициализация Slowapi limiter
+# Инициализация SlowAPI limiter
 limiter = Limiter(
     key_func=get_remote_address,
     default_limits=[
@@ -24,7 +26,6 @@ limiter = Limiter(
     ],
     enabled=settings.RATE_LIMIT_ENABLED
 )
-
 
 def rate_limit_exceeded_handler(request: Request, exc: RateLimitExceeded) -> JSONResponse:
     """Обработчик превышения лимита"""
@@ -40,22 +41,22 @@ def rate_limit_exceeded_handler(request: Request, exc: RateLimitExceeded) -> JSO
 
 class RateLimitMiddleware:
     """Middleware для проверки rate limits"""
-    
+
     def __init__(self, app):
         self.app = app
-    
+
     async def __call__(self, scope, receive, send):
         if scope["type"] != "http":
             await self.app(scope, receive, send)
             return
-        
+
         request = Request(scope, receive)
-        
+
         # Пропускаем проверку для некоторых эндпоинтов
         if self._is_excluded_path(request.url.path):
             await self.app(scope, receive, send)
             return
-        
+
         # Проверяем rate limit
         if not await self._check_rate_limit(request):
             response = JSONResponse(
@@ -67,9 +68,9 @@ class RateLimitMiddleware:
             )
             await response(scope, receive, send)
             return
-        
+
         await self.app(scope, receive, send)
-    
+
     def _is_excluded_path(self, path: str) -> bool:
         """Пути, исключённые из rate limiting"""
         excluded = [
@@ -80,7 +81,7 @@ class RateLimitMiddleware:
             "/metrics"
         ]
         return any(path.startswith(p) for p in excluded)
-    
+
     async def _check_rate_limit(self, request: Request) -> bool:
         """Проверка лимита (упрощённая версия)"""
         # В реальном приложении используйте Redis для хранения счётчиков
@@ -102,4 +103,3 @@ def auth_rate_limit():
 def upload_rate_limit():
     """Лимит для загрузки файлов"""
     return limiter.limit("20/hour")
-

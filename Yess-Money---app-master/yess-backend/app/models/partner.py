@@ -1,8 +1,14 @@
 """Partner models"""
-from sqlalchemy import Column, Integer, String, Text, Numeric, Boolean, DateTime, ForeignKey, Date, CheckConstraint, JSON, Float, func, Geometry
+from sqlalchemy import Column, Integer, String, Text, Numeric, Boolean, DateTime, ForeignKey, Date, CheckConstraint, JSON, Float, func, Index
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from app.core.database import Base
+
+# Geometry support - optional, requires geoalchemy2
+try:
+    from geoalchemy2 import Geometry
+except ImportError:
+    Geometry = None  # Will not use Geometry if geoalchemy2 is not installed
 
 
 class Partner(Base):
@@ -44,7 +50,7 @@ class Partner(Base):
     longitude = Column(Float, nullable=True)
     
     # Геометрия для пространственных запросов
-    geom = Column(Geometry('POINT'), nullable=True)
+    # geom = Column(Geometry('POINT'), nullable=True)  # Requires geoalchemy2
     
     # Дополнительные атрибуты
     default_cashback_rate = Column(Float, default=5.0)
@@ -67,9 +73,9 @@ class Partner(Base):
     city = relationship("City", back_populates="partners")
     locations = relationship("PartnerLocation", back_populates="partner")
     employees = relationship("PartnerEmployee", back_populates="partner")
-    promotions = relationship("Promotion", back_populates="partner")
+    # promotions = relationship("Promotion", back_populates="partner")  # Defined in promotion.py
     orders = relationship("Order", back_populates="partner")
-    agent_bonuses = relationship("AgentPartnerBonus", back_populates="partner")
+    # agent_bonuses = relationship("AgentPartnerBonus", back_populates="partner")
     transactions = relationship("Transaction", back_populates="partner")
 
 
@@ -86,7 +92,7 @@ class PartnerLocation(Base):
     is_active = Column(Boolean, default=True)
     
     # Геолокационные данные
-    geom = Column(Geometry('POINT'), nullable=True)
+    # geom = Column(Geometry('POINT'), nullable=True)  # Requires geoalchemy2
     
     # Дополнительная информация о локации
     is_main_location = Column(Boolean, default=False)
@@ -112,18 +118,19 @@ class PartnerEmployee(Base):
     partner = relationship("Partner", back_populates="employees")
 
 
-class Promotion(Base):
-    __tablename__ = "promotions"
-    
-    id = Column(Integer, primary_key=True, index=True)
-    partner_id = Column(Integer, ForeignKey("partners.id"), nullable=False)
-    title = Column(String(255), nullable=False)
-    description = Column(Text)
-    discount_percent = Column(Integer)
-    valid_until = Column(Date)
-    is_active = Column(Boolean, default=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
-    
-    # Relationships
-    partner = relationship("Partner", back_populates="promotions")
+# Promotion model is defined in promotion.py to avoid duplicate table definition
+# class Promotion(Base):
+#     __tablename__ = "promotions"
+#     
+#     id = Column(Integer, primary_key=True, index=True)
+#     partner_id = Column(Integer, ForeignKey("partners.id"), nullable=False)
+#     title = Column(String(255), nullable=False)
+#     description = Column(Text)
+#     discount_percent = Column(Integer)
+#     valid_until = Column(Date)
+#     is_active = Column(Boolean, default=True)
+#     created_at = Column(DateTime, default=datetime.utcnow)
+#     
+#     # Relationships
+#     partner = relationship("Partner", back_populates="promotions")
 
