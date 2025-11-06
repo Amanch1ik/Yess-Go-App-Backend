@@ -2,7 +2,7 @@
 File Upload API
 Загрузка аватаров, логотипов, изображений
 """
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Request
 from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.models.user import User
@@ -20,6 +20,7 @@ router = APIRouter(prefix="/upload", tags=["File Upload"])
 @router.post("/avatar")
 @upload_rate_limit()
 async def upload_avatar(
+    request: Request,
     file: UploadFile = File(..., description="Изображение профиля"),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -62,6 +63,7 @@ async def upload_avatar(
 @router.post("/partner/logo/{partner_id}")
 @upload_rate_limit()
 async def upload_partner_logo(
+    request: Request,
     partner_id: int,
     file: UploadFile = File(..., description="Логотип партнёра"),
     current_user: User = Depends(get_current_user),
@@ -117,6 +119,7 @@ async def upload_partner_logo(
 @router.post("/partner/cover/{partner_id}")
 @upload_rate_limit()
 async def upload_partner_cover(
+    request: Request,
     partner_id: int,
     file: UploadFile = File(..., description="Обложка партнёра"),
     current_user: User = Depends(get_current_user),

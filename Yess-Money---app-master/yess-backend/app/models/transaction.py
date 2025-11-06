@@ -10,6 +10,7 @@ class Transaction(Base):
     
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    partner_id = Column(Integer, ForeignKey("partners.id"), nullable=True, index=True)  # Partner involved in transaction
     type = Column(String(50), nullable=False, index=True)  # topup, discount, bonus, refund
     amount = Column(Numeric(10, 2), nullable=False)
     balance_before = Column(Numeric(10, 2))
@@ -17,6 +18,12 @@ class Transaction(Base):
     status = Column(String(50), nullable=False, index=True)  # pending, completed, failed
     payment_url = Column(String(500))
     qr_code_data = Column(Text)
+    
+    # Additional fields for QR payment tracking
+    yescoin_used = Column(Numeric(10, 2), default=0.0)  # YesCoin spent
+    yescoin_earned = Column(Numeric(10, 2), default=0.0)  # Cashback earned
+    description = Column(Text)  # Transaction description
+    
     created_at = Column(DateTime, default=datetime.utcnow, index=True)
     completed_at = Column(DateTime)
     
@@ -26,8 +33,11 @@ class Transaction(Base):
         Index('idx_transaction_user_status', 'user_id', 'status', 'created_at'),
         Index('idx_transaction_type_status', 'type', 'status', 'created_at'),
         Index('idx_transaction_date_range', 'created_at', 'status'),
+        Index('idx_transaction_partner', 'partner_id', 'created_at'),
     )
     
     # Relationships
     user = relationship("User", back_populates="transactions")
+    partner = relationship("Partner", back_populates="transactions")
+    refunds = relationship("Refund", back_populates="transaction")
 

@@ -73,7 +73,7 @@ class Partner(Base):
     city = relationship("City", back_populates="partners")
     locations = relationship("PartnerLocation", back_populates="partner")
     employees = relationship("PartnerEmployee", back_populates="partner")
-    # promotions = relationship("Promotion", back_populates="partner")  # Defined in promotion.py
+    promotions = relationship("Promotion", back_populates="partner")  # Defined in promotion.py
     orders = relationship("Order", back_populates="partner")
     # agent_bonuses = relationship("AgentPartnerBonus", back_populates="partner")
     transactions = relationship("Transaction", back_populates="partner")

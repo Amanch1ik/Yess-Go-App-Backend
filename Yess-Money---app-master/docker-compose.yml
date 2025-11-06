@@ -8,7 +8,7 @@ services:
     volumes:
       - ./yess-backend:/app
     environment:
-      - DATABASE_URL=postgresql://yess_user:password@postgres:5432/yess_loyalty
+      - DATABASE_URL=postgresql://yess_user:password@postgres:5432/yess_db
       - ENVIRONMENT=development
       - REDIS_URL=redis://redis:6379/0
       - SECRET_KEY=dev-secret-key-change-in-production
@@ -34,7 +34,7 @@ services:
   postgres:
     image: postgres:13
     environment:
-      - POSTGRES_DB=yess_loyalty
+      - POSTGRES_DB=yess_db
       - POSTGRES_USER=yess_user
       - POSTGRES_PASSWORD=password
     ports:

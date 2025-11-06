@@ -1,6 +1,6 @@
 from typing import Optional, Dict, List
 from sqlalchemy.orm import Session
-from app.core.notifications import SMSService, PushNotificationService
+from app.core.notifications import SMSService, PushNotificationService, sms_service, push_service
 from app.models.user import User
 from app.models.partner import Partner
 from app.models.transaction import Transaction

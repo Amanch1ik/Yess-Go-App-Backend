@@ -1,164 +1,127 @@
-"""
-Configuration settings for Kyrgyzstan
-"""
-from pydantic import BaseSettings, PostgresDsn, RedisDsn, validator
-from typing import List, Optional, Union, Dict, Any
 import os
 from functools import lru_cache
-from fastapi.security import OAuth2PasswordBearer
+from typing import Optional, Dict, Any, List
+from pydantic import BaseSettings, validator
 
 
 class Settings(BaseSettings):
-    # Project settings
     PROJECT_NAME: str = "Yess Loyalty"
 
-    # Database configuration
-    POSTGRES_HOST: str = 'postgres'
-    POSTGRES_USER: str = 'yess_user'
-    POSTGRES_PASSWORD: str = 'secure_password'
-    POSTGRES_DB: str = 'yess_db'
-
-    # SQLAlchemy Database URI
-    SQLALCHEMY_DATABASE_URI: Optional[PostgresDsn] = None
-    DATABASE_URL: Optional[str] = None
-
-    @validator("SQLALCHEMY_DATABASE_URI", pre=True)
-    def assemble_db_connection(cls, v: Optional[str], values: Dict[str, Any]) -> Any:
-        if isinstance(v, str):
-            return v
-        return PostgresDsn.build(
-            scheme="postgresql",
-            user=values.get("POSTGRES_USER"),
-            password=values.get("POSTGRES_PASSWORD"),
-            host=values.get("POSTGRES_HOST"),
-            path=f"/{values.get('POSTGRES_DB') or ''}",
-        )
-
-    @validator("DATABASE_URL", pre=True)
-    def assemble_database_url(cls, v: Optional[str], values: Dict[str, Any]) -> str:
-        """Создание DATABASE_URL из компонентов"""
-        if isinstance(v, str) and v:
-            return v
-        db_uri = values.get("SQLALCHEMY_DATABASE_URI")
-        if db_uri:
-            return str(db_uri)
-        return f"postgresql://{values.get('POSTGRES_USER')}:{values.get('POSTGRES_PASSWORD')}@{values.get('POSTGRES_HOST')}/{values.get('POSTGRES_DB')}"
-
-    # Authentication settings (ВАЖНО: SECRET_KEY должен читаться из .env)
-    SECRET_KEY: str = os.getenv("SECRET_KEY", "CHANGE_ME_NOW")   # !!! ЗАМЕНИ В .env
-    ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
-    REFRESH_TOKEN_EXPIRE_DAYS: int = 7
-
-    # OAuth2 scheme (Используется в get_current_user)
-    oauth2_scheme: OAuth2PasswordBearer = OAuth2PasswordBearer(
-        tokenUrl="/api/v1/auth/login"
-    )
-
-    # Security settings
-    _is_dev = os.getenv("ENVIRONMENT", "development").lower() == "development"
-    CORS_ORIGINS: list = ["*"] if _is_dev else ["http://localhost:3000", "https://yessloyalty.com"]
-
-    # External services
-    SENTRY_DSN: Optional[str] = None
-
-    # Feature flags
-    ENABLE_REGISTRATION: bool = True
-    ENABLE_TWO_FACTOR_AUTH: bool = False
-
-    # Server Configuration
+    # Application
+    DEBUG: bool = False
     HOST: str = "0.0.0.0"
     PORT: int = 8000
-    DEBUG: bool = False
     BASE_URL: str = "http://localhost:8000"
-
-    # Kyrgyzstan Specific Configuration
-    COUNTRY_CODE: str = "KG"
-    CURRENCY: str = "KGS"
-    TIMEZONE: str = "Asia/Bishkek"
-    LANGUAGE: str = "kg"
-    PHONE_FORMAT: str = "+996XXXXXXXXX"
-    DATE_FORMAT: str = "DD.MM.YYYY"
-    TIME_FORMAT: str = "HH:MM"
-    NUMBER_FORMAT: str = "1 234,56"
-
-    # Redis Configuration
-    REDIS_URL: RedisDsn = "redis://redis:6379/0"
-    REDIS_CACHE_EXPIRATION: int = 3600  # 1 hour
-
-    # Frontend URLs
     FRONTEND_URL: str = "http://localhost:3000"
-    FRONTEND_PROD_URL: str = "https://yess-loyalty.com"
 
-    # CORS Configuration
-    CORS_ALLOW_CREDENTIALS: bool = False if _is_dev else True
-    CORS_ALLOW_METHODS: List[str] = ["*"]
-    CORS_ALLOW_HEADERS: List[str] = ["*"]
+    # Database
+    POSTGRES_HOST: str = "postgres"
+    POSTGRES_USER: str = "yess_user"
+    POSTGRES_PASSWORD: str = "password"
+    POSTGRES_DB: str = "yess_db"
+    SQLALCHEMY_DATABASE_URI: Optional[str] = None
+    DATABASE_URL: Optional[str] = None  # Alternative database URL
 
-    # Logging Configuration
-    LOG_LEVEL: str = "INFO"
-    LOG_FILE: Optional[str] = None
+    @validator("SQLALCHEMY_DATABASE_URI", pre=True)
+    def assemble_db_connection(cls, v, values: Dict[str, Any]):
+        if v:
+            return v
+        return (
+            f"postgresql://{values['POSTGRES_USER']}:{values['POSTGRES_PASSWORD']}"
+            f"@{values['POSTGRES_HOST']}/{values['POSTGRES_DB']}"
+        )
 
-    # Performance Configuration
-    REQUEST_TIMEOUT: int = 10  # seconds
-    MAX_CONCURRENT_REQUESTS: int = 100
+    # Auth & JWT
+    SECRET_KEY: str = os.getenv("SECRET_KEY", "CHANGE_ME")
+    JWT_SECRET_KEY: str = os.getenv("JWT_SECRET_KEY", "CHANGE_ME")
+    ALGORITHM: str = "HS256"
+    JWT_ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
+    REFRESH_TOKEN_EXPIRE_MINUTES: int = 10080  # 7 days in minutes
+    REFRESH_TOKEN_EXPIRE_DAYS: int = 7
 
-    # Feature Flags
-    ENABLE_CACHING: bool = True
-    ENABLE_PERFORMANCE_MONITORING: bool = True
+    # CORS
+    CORS_ORIGINS: List[str] = ["http://localhost:3000", "http://localhost:8000"]
 
-    # Kyrgyzstan Banks Configuration
-    OPTIMAL_BANK_API_URL: str = "https://api.optimalbank.kg"
+    # Rate limiting
+    RATE_LIMIT_ENABLED: bool = True
+    RATE_LIMIT_PER_MINUTE: int = 100
+    RATE_LIMIT_PER_HOUR: int = 1000
+
+    # Middleware & Monitoring
+    ENABLE_PERFORMANCE_MONITORING: bool = False
+
+    # File Uploads & Storage
+    UPLOAD_DIRECTORY: str = "/app/uploads"
+    UPLOAD_DIR: str = "/app/uploads"  # Alternative name used in storage.py
+    MAX_FILE_SIZE: int = 10 * 1024 * 1024
+    MAX_UPLOAD_SIZE: int = 10 * 1024 * 1024  # Alternative name
+    ALLOWED_FILE_TYPES: List[str] = ["jpg", "jpeg", "png", "gif", "pdf"]
+    ALLOWED_IMAGE_EXTENSIONS: List[str] = ["jpg", "jpeg", "png", "gif"]
+    STATIC_URL: str = "/static"
+
+    # AWS S3 Configuration
+    USE_S3: bool = False
+    AWS_ACCESS_KEY_ID: str = ""
+    AWS_SECRET_ACCESS_KEY: str = ""
+    AWS_REGION: str = "us-east-1"
+    AWS_S3_BUCKET: str = ""
+
+    # Redis
+    REDIS_URL: str = "redis://redis:6379/0"
+    REDIS_CACHE_TTL: int = 3600  # Default cache TTL in seconds
+
+    # SMS Notifications (Twilio)
+    SMS_ENABLED: bool = False
+    TWILIO_ACCOUNT_SID: str = os.getenv("TWILIO_ACCOUNT_SID", "")
+    TWILIO_AUTH_TOKEN: str = os.getenv("TWILIO_AUTH_TOKEN", "")
+    TWILIO_FROM_NUMBER: str = os.getenv("TWILIO_FROM_NUMBER", "")
+    TWILIO_PHONE_NUMBER: str = os.getenv("TWILIO_PHONE_NUMBER", "")  # Alternative name
+
+    # Push Notifications (Firebase)
+    PUSH_ENABLED: bool = False
+    FCM_SERVER_KEY: str = os.getenv("FCM_SERVER_KEY", "")
+    FIREBASE_CREDENTIALS_PATH: str = os.getenv("FIREBASE_CREDENTIALS_PATH", "")
+
+    # Email Notifications (SendGrid)
+    SENDGRID_API_KEY: str = os.getenv("SENDGRID_API_KEY", "")
+    FROM_EMAIL: str = "noreply@yess-loyalty.com"
+
+    # Map Services
+    GOOGLE_MAPS_API_KEY: str = ""
+    MAPBOX_API_KEY: str = ""
+
+    # Business Rules
+    TOPUP_MULTIPLIER: float = 1.0  # Bonus multiplier for top-ups
+
+    # Bank Integrations - Optimal Bank
+    OPTIMAL_BANK_API_URL: str = ""
     OPTIMAL_BANK_MERCHANT_ID: str = ""
     OPTIMAL_BANK_SECRET_KEY: str = ""
 
-    DEMIR_BANK_API_URL: str = "https://api.demirbank.kg"
+    # Bank Integrations - Demir Bank
+    DEMIR_BANK_API_URL: str = ""
     DEMIR_BANK_MERCHANT_ID: str = ""
     DEMIR_BANK_SECRET_KEY: str = ""
 
-    RSK_BANK_API_URL: str = "https://api.rskbank.kg"
+    # Bank Integrations - RSK Bank
+    RSK_BANK_API_URL: str = ""
     RSK_BANK_MERCHANT_ID: str = ""
     RSK_BANK_SECRET_KEY: str = ""
 
-    BAKAI_BANK_API_URL: str = "https://api.bakaibank.kg"
+    # Bank Integrations - Bakai Bank
+    BAKAI_BANK_API_URL: str = ""
     BAKAI_BANK_MERCHANT_ID: str = ""
     BAKAI_BANK_SECRET_KEY: str = ""
 
-    ELCART_API_URL: str = "https://api.elcart.kg"
+    # Payment System - Elcart
+    ELCART_API_URL: str = ""
     ELCART_MERCHANT_ID: str = ""
     ELCART_SECRET_KEY: str = ""
-
-    # Notification Services
-    FCM_SERVER_KEY: str = ""
-    TWILIO_ACCOUNT_SID: str = ""
-    TWILIO_AUTH_TOKEN: str = ""
-    TWILIO_FROM_NUMBER: str = ""
-    SENDGRID_API_KEY: str = ""
-    FROM_EMAIL: str = "noreply@yess-loyalty.com"
-
-    # Business Rules for Kyrgyzstan
-    DEFAULT_REFERRAL_BONUS: float = 100.0  # сом
-    MIN_TRANSACTION_AMOUNT: float = 10.0  # сом
-    MAX_TRANSACTION_AMOUNT: float = 100000.0  # сом
-    DEFAULT_CASHBACK_RATE: float = 1.0  # %
-    MAX_CASHBACK_RATE: float = 10.0  # %
-
-    # Rate Limiting
-    RATE_LIMIT_REQUESTS: int = 100
-    RATE_LIMIT_WINDOW: int = 60  # seconds
-    RATE_LIMIT_PER_MINUTE: int = 100
-    RATE_LIMIT_PER_HOUR: int = 1000
-    RATE_LIMIT_ENABLED: bool = True
-
-    # File Upload
-    MAX_FILE_SIZE: int = 10 * 1024 * 1024  # 10MB
-    ALLOWED_FILE_TYPES: List[str] = ["jpg", "jpeg", "png", "gif", "pdf"]
-    UPLOAD_DIRECTORY: str = "uploads"
 
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"
-        case_sensitive = True
 
 
 @lru_cache()

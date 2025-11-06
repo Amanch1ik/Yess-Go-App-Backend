@@ -11,7 +11,9 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     
     # Основная информация
-    name = Column(String(255), nullable=False)
+    name = Column(String(255), nullable=True)  # Оставляем для обратной совместимости
+    first_name = Column(String(255), nullable=True)
+    last_name = Column(String(255), nullable=True)
     email = Column(String(255), unique=True, index=True)
     phone = Column(String(50), unique=True, nullable=False, index=True)
     password_hash = Column(String(255))
@@ -56,6 +58,11 @@ class User(Base):
     roles = relationship("UserRole", back_populates="user")
     transactions = relationship("Transaction", back_populates="user")
     orders = relationship("Order", back_populates="user")
+    notifications = relationship("Notification", back_populates="user")
+    notification_settings = relationship("NotificationSettings", back_populates="user", uselist=False)
+    user_achievements = relationship("UserAchievement", back_populates="user")
+    user_level = relationship("UserLevel", back_populates="user", uselist=False)
+    user_promo_codes = relationship("UserPromoCode", back_populates="user")
     # agent = relationship("Agent", back_populates="user", uselist=False)
     # referrals_given = relationship("Referral", foreign_keys="Referral.referred_user_id", back_populates="referred_user")
     
