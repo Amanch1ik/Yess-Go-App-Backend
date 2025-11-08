@@ -12,6 +12,7 @@ from app.models.notification import Notification, NotificationTemplate, Notifica
 from app.models.achievement import Achievement, UserAchievement, UserLevel, LevelReward, UserLevelReward, AchievementProgress
 # from app.models.review import PartnerReview, ReviewPhoto, ReviewLike, ReviewReport, ReviewModeration
 from app.models.promotion import Promotion as PromotionModel, PromoCode, UserPromoCode, PromotionUsage, PromoCodeGeneration
+from app.models.banner import Banner
 
 __all__ = [
     "User",
@@ -50,6 +51,7 @@ __all__ = [
     "PromoCode",
     "UserPromoCode",
     "PromotionUsage",
-    "PromoCodeGeneration"
+    "PromoCodeGeneration",
+    "Banner"
 ]
 

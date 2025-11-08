@@ -41,7 +41,9 @@ class Settings(BaseSettings):
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
 
     # CORS
-    CORS_ORIGINS: List[str] = ["http://localhost:3000", "http://localhost:8000"]
+    # 🔓 For development: allow all origins
+    # 🔒 For production: restrict to specific domains
+    CORS_ORIGINS: List[str] = os.getenv("CORS_ORIGINS", "*").split(",") if os.getenv("CORS_ORIGINS") != "*" else ["*"]
 
     # Rate limiting
     RATE_LIMIT_ENABLED: bool = True

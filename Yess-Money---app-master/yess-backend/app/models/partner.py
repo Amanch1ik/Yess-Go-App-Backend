@@ -77,6 +77,7 @@ class Partner(Base):
     orders = relationship("Order", back_populates="partner")
     # agent_bonuses = relationship("AgentPartnerBonus", back_populates="partner")
     transactions = relationship("Transaction", back_populates="partner")
+    banners = relationship("Banner", back_populates="partner")  # Defined in banner.py
 
 
 class PartnerLocation(Base):

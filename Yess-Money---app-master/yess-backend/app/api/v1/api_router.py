@@ -12,6 +12,7 @@ from app.api.v1 import wallet
 from app.api.v1 import order
 from app.api.v1 import upload
 from app.api.v1 import qr
+from app.api.v1 import banner
 
 api_router = APIRouter()
 
@@ -24,6 +25,7 @@ api_router.include_router(wallet.router, prefix="/wallet", tags=["Wallet"])
 api_router.include_router(order.router, prefix="/orders", tags=["Orders"])
 api_router.include_router(upload.router, prefix="/upload", tags=["Upload"])
 api_router.include_router(qr.router, prefix="/qr", tags=["QR"])
+api_router.include_router(banner.router, prefix="/banners", tags=["Banners"])
 
 # Optional routers - try to import if available
 try:
