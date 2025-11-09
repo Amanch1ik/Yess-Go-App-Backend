@@ -40,6 +40,9 @@ geopy==2.4.1
 requests==2.30.0
 urllib3<2.0.0
 
+# SMS уведомления (Twilio)
+twilio==8.10.0
+
 # Мониторинг
 prometheus-client==0.16.0
 sentry-sdk==1.22.0

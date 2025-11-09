@@ -45,3 +45,16 @@ class TokenResponse(BaseModel):
     user_id: Optional[int] = None
     user: Optional["UserResponse"] = None
 
+
+class VerificationCodeRequest(BaseModel):
+    phone_number: str = Field(..., description="Номер телефона для отправки кода")
+
+
+class VerifyCodeRequest(BaseModel):
+    phone_number: str = Field(..., description="Номер телефона")
+    code: str = Field(..., min_length=4, max_length=10, description="Код подтверждения")
+    password: str = Field(..., min_length=6, description="Пароль пользователя")
+    first_name: str = Field(..., description="Имя пользователя")
+    last_name: str = Field(..., description="Фамилия пользователя")
+    city_id: Optional[int] = None
+    referral_code: Optional[str] = None

@@ -12,6 +12,9 @@ services:
       - ENVIRONMENT=development
       - REDIS_URL=redis://redis:6379/0
       - SECRET_KEY=dev-secret-key-change-in-production
+      - DEBUG=True
+    env_file:
+      - ./yess-backend/.env
     depends_on:
       - postgres
       - redis

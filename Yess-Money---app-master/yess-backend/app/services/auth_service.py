@@ -11,6 +11,7 @@ from app.core.config import settings
 from app.models.user import User
 from app.core.exceptions import AuthenticationException
 from app.core.database import SessionLocal
+from app.core.notifications import sms_service
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -108,6 +109,110 @@ class AuthService:
         db.refresh(new_user)
 
         return new_user
+
+    @classmethod
+    async def send_verification_code(
+        cls,
+        db: Session,
+        phone_number: str
+    ) -> dict:
+        """
+        Отправка SMS-кода на номер телефона через Twilio Verify
+        """
+        # Проверяем, не зарегистрирован ли уже пользователь
+        existing_user = db.query(User).filter(User.phone == phone_number).first()
+        if existing_user and existing_user.phone_verified:
+            raise AuthenticationException("Пользователь с таким номером уже зарегистрирован")
+        
+        # Отправляем код через Twilio Verify
+        result = await sms_service.send_verification_code(phone_number)
+        
+        if not result.get("success"):
+            raise AuthenticationException(f"Не удалось отправить код: {result.get('error', 'Unknown error')}")
+        
+        # Сохраняем информацию о верификации (опционально, для логирования)
+        if existing_user:
+            existing_user.verification_expires_at = datetime.utcnow() + timedelta(minutes=10)
+        else:
+            # Создаем временную запись
+            temp_user = User(
+                phone=phone_number,
+                phone_verified=False,
+                is_active=False
+            )
+            db.add(temp_user)
+        
+        db.commit()
+        
+        response = {"message": "Код отправлен", "sid": result.get("sid")}
+        
+        # В DEBUG режиме добавляем дополнительную информацию для тестирования
+        if settings.DEBUG:
+            response["debug_info"] = {
+                "phone": phone_number,
+                "status": result.get("status"),
+                "note": "В Trial режиме Twilio отправляет SMS только на верифицированный номер. Проверьте SMS на телефоне или Twilio Dashboard."
+            }
+        
+        return response
+
+    @classmethod
+    async def verify_code_and_register(
+        cls,
+        db: Session,
+        phone_number: str,
+        code: str,
+        password: str,
+        first_name: str,
+        last_name: str,
+        **kwargs
+    ) -> User:
+        """
+        Проверка кода через Twilio Verify и завершение регистрации
+        """
+        # Проверяем код через Twilio Verify
+        verify_result = await sms_service.verify_code(phone_number, code)
+        
+        if not verify_result.get("valid"):
+            raise AuthenticationException("Неверный или истекший код подтверждения")
+        
+        # Находим или создаем пользователя
+        user = db.query(User).filter(User.phone == phone_number).first()
+        
+        if user and user.phone_verified and user.password_hash:
+            raise AuthenticationException("Пользователь уже зарегистрирован")
+        
+        # Завершаем регистрацию
+        hashed_password = cls.get_password_hash(password)
+        
+        if user:
+            # Обновляем существующую запись
+            user.password_hash = hashed_password
+            user.first_name = first_name
+            user.last_name = last_name
+            user.name = f"{first_name} {last_name}"
+            user.phone_verified = True
+            user.is_active = True
+            user.verification_code = None
+            user.verification_expires_at = None
+        else:
+            # Создаем нового пользователя
+            user = User(
+                phone=phone_number,
+                password_hash=hashed_password,
+                first_name=first_name,
+                last_name=last_name,
+                name=f"{first_name} {last_name}",
+                phone_verified=True,
+                is_active=True,
+                **kwargs
+            )
+            db.add(user)
+        
+        db.commit()
+        db.refresh(user)
+        
+        return user
 
 
 def get_current_user(token: str = Depends(oauth2_scheme)) -> User:

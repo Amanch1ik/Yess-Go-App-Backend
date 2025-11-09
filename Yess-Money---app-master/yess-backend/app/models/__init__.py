@@ -3,6 +3,7 @@ from app.models.user import User
 from app.models.role import Role, UserRole
 from app.models.wallet import Wallet
 from app.models.city import City
+from app.models.category import Category
 from app.models.partner import Partner, PartnerLocation, PartnerEmployee
 from app.models.transaction import Transaction
 from app.models.order import Order
@@ -20,6 +21,7 @@ __all__ = [
     "UserRole",
     "Wallet",
     "City",
+    "Category",
     "Partner",
     "PartnerLocation",
     "PartnerEmployee",
