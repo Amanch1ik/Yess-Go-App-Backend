@@ -9,6 +9,7 @@ from fastapi.security import OAuth2PasswordBearer
 
 from app.core.config import settings
 from app.models.user import User
+from app.models.wallet import Wallet
 from app.core.exceptions import AuthenticationException
 from app.core.database import SessionLocal
 from app.core.notifications import sms_service
@@ -107,6 +108,14 @@ class AuthService:
         db.add(new_user)
         db.commit()
         db.refresh(new_user)
+
+        # Создаём кошелёк для нового пользователя
+        wallet = Wallet(
+            user_id=new_user.id,
+            balance=0.00
+        )
+        db.add(wallet)
+        db.commit()
 
         return new_user
 
@@ -211,6 +220,16 @@ class AuthService:
         
         db.commit()
         db.refresh(user)
+        
+        # Создаём кошелёк, если его ещё нет
+        existing_wallet = db.query(Wallet).filter(Wallet.user_id == user.id).first()
+        if not existing_wallet:
+            wallet = Wallet(
+                user_id=user.id,
+                balance=0.00
+            )
+            db.add(wallet)
+            db.commit()
         
         return user
 
