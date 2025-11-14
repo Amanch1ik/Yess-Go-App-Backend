@@ -1,9 +1,10 @@
 import { useState, lazy, Suspense } from 'react';
-import { Card, Table, Tag, Button, Form, Input, Switch, Space, Tooltip, Row, Col, Select, message, Spin } from 'antd';
-import { EditOutlined, PlusOutlined, SearchOutlined } from '@ant-design/icons';
+import { Card, Table, Tag, Button, Form, Input, Switch, Space, Tooltip, Row, Col, Select, message, Spin, Dropdown } from 'antd';
+import { EditOutlined, PlusOutlined, SearchOutlined, ExportOutlined } from '@ant-design/icons';
 import { DeleteButton } from '../components/DeleteButton';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { locationsApi } from '../services/api';
+import { exportToCSV, exportToExcel, exportToJSON } from '../utils/exportUtils';
 
 // Динамический импорт карты для избежания проблем с SSR
 const LocationMap = lazy(() => 
@@ -212,15 +213,76 @@ export const LocationsPage = () => {
     },
   ];
 
+  // Экспорт данных
+  const handleExport = (format: 'csv' | 'excel' | 'json' = 'csv') => {
+    const dataToExport = filteredLocations.length > 0 ? filteredLocations : allLocations;
+    
+    if (!dataToExport || dataToExport.length === 0) {
+      message.warning('Нет данных для экспорта');
+      return;
+    }
+
+    const exportColumns = [
+      { key: 'id', title: 'ID' },
+      { key: 'name', title: 'Название' },
+      { key: 'address', title: 'Адрес' },
+      { key: 'status', title: 'Статус', render: (val: string) => val === 'open' ? 'Открыто' : 'Закрыто' },
+      { key: 'phone', title: 'Телефон' },
+      { key: 'email', title: 'Email' },
+    ];
+
+    try {
+      if (format === 'csv') {
+        exportToCSV(dataToExport, exportColumns, 'locations');
+        message.success('Файл успешно загружен');
+      } else if (format === 'excel') {
+        exportToExcel(dataToExport, exportColumns, 'locations');
+        message.success('Файл успешно загружен');
+      } else {
+        exportToJSON(dataToExport, 'locations');
+        message.success('Файл успешно загружен');
+      }
+    } catch (error) {
+      console.error('Export error:', error);
+      message.error('Ошибка при экспорте данных');
+    }
+  };
+
+  const exportMenuItems = [
+    { key: 'csv', label: 'Экспорт в CSV', onClick: () => handleExport('csv') },
+    { key: 'excel', label: 'Экспорт в Excel', onClick: () => handleExport('excel') },
+    { key: 'json', label: 'Экспорт в JSON', onClick: () => handleExport('json') },
+  ];
+
   return (
     <div className="fade-in">
-      <div style={{ marginBottom: 20 }}>
-        <h1 style={{ fontSize: 32, fontWeight: 700, margin: 0, color: '#0F2A1D', background: 'linear-gradient(135deg, #0F2A1D 0%, #689071 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
-          🏪 Локации партнёра
-        </h1>
-        <p style={{ color: '#689071', margin: '8px 0 0 0', fontSize: 14, fontWeight: 500 }}>
-          Управляйте информацией о вашем бизнесе и локациях
-        </p>
+      <div style={{ marginBottom: 20, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <div>
+          <h1 style={{ fontSize: 32, fontWeight: 700, margin: 0, color: '#0F2A1D', background: 'linear-gradient(135deg, #0F2A1D 0%, #689071 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
+            🏪 Локации партнёра
+          </h1>
+          <p style={{ color: '#689071', margin: '8px 0 0 0', fontSize: 14, fontWeight: 500 }}>
+            Управляйте информацией о вашем бизнесе и локациях
+          </p>
+        </div>
+        <Dropdown
+          menu={{ items: exportMenuItems }}
+          trigger={['click']}
+        >
+          <Button
+            type="default"
+            icon={<ExportOutlined />}
+            style={{
+              borderRadius: 12,
+              borderColor: '#689071',
+              color: '#689071',
+              height: 40,
+              fontWeight: 600,
+            }}
+          >
+            Экспорт
+          </Button>
+        </Dropdown>
       </div>
 
       {/* Фильтры */}

@@ -48,9 +48,47 @@ function App() {
   const language = localStorage.getItem('language') || 'ru';
   const antdLocale = language === 'en' ? enUS : ruRU; // Для кыргызского тоже используем русский пока
   
-  // Простая проверка, что приложение загрузилось
+  // Глобальная обработка ошибок
   React.useEffect(() => {
-    console.log('App loaded');
+    // Игнорируем ошибки Shadow DOM (обычно из внешних библиотек/расширений)
+    const originalError = window.onerror;
+    window.onerror = (message, source, lineno, colno, error) => {
+      // Игнорируем ошибки Shadow DOM
+      if (message && typeof message === 'string' && message.includes('attachShadow')) {
+        return true; // Предотвращаем вывод ошибки в консоль
+      }
+      // Игнорируем ошибки WebSocket после отключения
+      if (message && typeof message === 'string' && message.includes('WebSocket connection')) {
+        // Проверяем, не был ли WebSocket отключен
+        const wsDisabled = localStorage.getItem('ws_disabled') === 'true';
+        if (wsDisabled) {
+          return true; // Предотвращаем вывод ошибки в консоль
+        }
+      }
+      // Для остальных ошибок используем стандартную обработку
+      if (originalError) {
+        return originalError(message, source, lineno, colno, error);
+      }
+      return false;
+    };
+
+    // Обработка необработанных промисов
+    const unhandledRejection = (event: PromiseRejectionEvent) => {
+      // Игнорируем ошибки WebSocket
+      if (event.reason && typeof event.reason === 'object' && 'message' in event.reason) {
+        const message = String(event.reason.message || '');
+        if (message.includes('WebSocket') || message.includes('attachShadow')) {
+          event.preventDefault();
+          return;
+        }
+      }
+    };
+    window.addEventListener('unhandledrejection', unhandledRejection);
+
+    return () => {
+      window.onerror = originalError;
+      window.removeEventListener('unhandledrejection', unhandledRejection);
+    };
   }, []);
   
   return (

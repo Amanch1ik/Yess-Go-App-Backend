@@ -159,7 +159,7 @@ export const LoginPage = () => {
         <div className="login-form-container">
           {/* Название приложения */}
           <div className="login-logo">
-            <h1>YESS!Partner</h1>
+            <h1>YESS!Admin</h1>
           </div>
 
           <div className="login-header">

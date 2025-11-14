@@ -35,14 +35,6 @@ function formatDateForExport(date: string | Date | null | undefined): string {
 }
 
 /**
- * Форматирует число для экспорта
- */
-function formatNumberForExport(value: number | null | undefined): string {
-  if (value === null || value === undefined) return '';
-  return String(value).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
-}
-
-/**
  * Экспорт данных в CSV с правильным форматированием
  * Каждое поле в отдельной колонке, правильное экранирование
  */
@@ -73,12 +65,6 @@ export function exportToCSV<T extends Record<string, any>>(
   const headers = columns.map(col => escapeCSVValue(col.title));
   const headerRow = headers.join(CSV_SEPARATOR);
   
-  console.log('Exporting CSV:', {
-    rows: data.length,
-    columns: columns.length,
-    headers: headers
-  });
-  
   // Данные - каждая колонка отдельно, каждая строка на новой строке
   const dataRows = data.map((record, index) => {
     const rowValues = columns.map((col, colIndex) => {
@@ -89,11 +75,6 @@ export function exportToCSV<T extends Record<string, any>>(
       if (value === undefined && col.key.includes('.')) {
         const keys = col.key.split('.');
         value = keys.reduce((obj, key) => obj?.[key], record);
-      }
-      
-      // Если значение все еще не найдено, логируем для отладки
-      if (value === undefined && index === 0) {
-        console.warn(`Column "${col.key}" not found in record:`, Object.keys(record));
       }
       
       let displayValue: any = value;
@@ -129,25 +110,11 @@ export function exportToCSV<T extends Record<string, any>>(
       }
       
       // Преобразуем в строку и экранируем
-      const escapedValue = escapeCSVValue(String(displayValue));
-      
-      // Логируем первую строку для отладки
-      if (index === 0 && colIndex === 0) {
-        console.log('First cell value:', { key: col.key, value, displayValue, escapedValue });
-      }
-      
-      return escapedValue;
+      return escapeCSVValue(String(displayValue));
     });
     
     // Объединяем значения строки через разделитель
-    const rowString = rowValues.join(CSV_SEPARATOR);
-    
-    // Логируем первую строку для отладки
-    if (index === 0) {
-      console.log('First row:', rowString.substring(0, 100));
-    }
-    
-    return rowString;
+    return rowValues.join(CSV_SEPARATOR);
   });
   
   // Объединяем все строки (каждая строка на новой строке)
@@ -160,19 +127,10 @@ export function exportToCSV<T extends Record<string, any>>(
     console.error('Export error: Empty CSV content', { 
       headerRow, 
       dataRowsCount: dataRows.length,
-      csvContentLength: csvContent?.length,
-      firstDataRow: dataRows[0]?.substring(0, 50)
+      csvContentLength: csvContent?.length
     });
     throw new Error('Ошибка при создании файла: пустое содержимое');
   }
-  
-  console.log('CSV export summary:', {
-    totalRows: allRows.length,
-    headerRow: headerRow.substring(0, 100),
-    firstDataRow: dataRows[0]?.substring(0, 100),
-    contentLength: csvContent.length,
-    contentPreview: csvContent.substring(0, 300)
-  });
   
   // Создаем и скачиваем файл
   const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -184,15 +142,10 @@ export function exportToCSV<T extends Record<string, any>>(
   link.click();
   document.body.removeChild(link);
   window.URL.revokeObjectURL(url);
-  
-  console.log('File downloaded:', link.download);
 }
 
 /**
  * Экспорт в Excel формат (использует CSV, но можно расширить до xlsx)
- * Для полноценного Excel используйте библиотеку xlsx:
- * npm install xlsx
- * import * as XLSX from 'xlsx';
  */
 export function exportToExcel<T extends Record<string, any>>(
   data: T[],
@@ -215,17 +168,10 @@ export function exportToExcel<T extends Record<string, any>>(
   }
 
   // Используем CSV формат (совместим с Excel)
-  // Для полноценного .xlsx формата нужно установить библиотеку xlsx
   const BOM = '\uFEFF';
   
   const headers = columns.map(col => escapeCSVValue(col.title));
   const headerRow = headers.join(CSV_SEPARATOR);
-  
-  console.log('Exporting Excel:', {
-    rows: data.length,
-    columns: columns.length,
-    headers: headers
-  });
   
   const dataRows = data.map((record, index) => {
     const rowValues = columns.map(col => {
@@ -280,22 +226,16 @@ export function exportToExcel<T extends Record<string, any>>(
     throw new Error('Ошибка при создании файла: пустое содержимое');
   }
   
-  console.log('Excel content preview:', csvContent.substring(0, 200));
-  
   // Для Excel используем правильный MIME type и расширение .csv
-  // Excel автоматически распознает CSV с точкой с запятой как разделитель
   const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
   const url = window.URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
-  // Используем .csv расширение - Excel правильно откроет файл с точкой с запятой
   link.download = `${filename}-${dayjs().format('YYYY-MM-DD')}.csv`;
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
   window.URL.revokeObjectURL(url);
-  
-  console.log('File downloaded:', link.download);
 }
 
 /**

@@ -12,8 +12,11 @@ import {
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
 import { QuickActions } from '../components/QuickActions';
 import { RecentActivity } from '../components/RecentActivity';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { dashboardApi } from '../services/api';
+import { connectWebSocket, wsService } from '../services/websocket';
+import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const salesData = [
   { date: '29 май', value: 220342.76 },
@@ -33,6 +36,54 @@ const categoryData = [
 ];
 
 export const DashboardPage = () => {
+  const queryClient = useQueryClient();
+  const navigate = useNavigate();
+
+  // WebSocket интеграция для реал-тайм обновлений
+  useEffect(() => {
+    // Проверяем, включен ли WebSocket
+    const wsEnabled = import.meta.env.VITE_WS_ENABLED !== 'false';
+    if (!wsEnabled) {
+      return;
+    }
+
+    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+    const wsUrl = apiUrl.replace(/^http/, 'ws') + '/ws';
+    
+    // Подключаемся к WebSocket только если он не был отключен ранее
+    if (!wsService.hasConnectionFailed()) {
+      connectWebSocket(wsUrl);
+    }
+    
+    // Подписка на обновления транзакций
+    const unsubscribeTransactions = wsService.on('transaction', (data) => {
+      queryClient.invalidateQueries(['dashboardStats']);
+      queryClient.invalidateQueries(['transactions']);
+    });
+    
+    // Подписка на обновления промо-акций
+    const unsubscribePromotions = wsService.on('promotion_update', (data) => {
+      queryClient.invalidateQueries(['dashboardStats']);
+    });
+    
+    // Подписка на обновления локаций
+    const unsubscribeLocations = wsService.on('location_update', (data) => {
+      queryClient.invalidateQueries(['dashboardStats']);
+    });
+    
+    // Подписка на уведомления
+    const unsubscribeNotifications = wsService.on('notification', (data) => {
+      console.log('New notification:', data);
+    });
+    
+    return () => {
+      unsubscribeTransactions();
+      unsubscribePromotions();
+      unsubscribeLocations();
+      unsubscribeNotifications();
+    };
+  }, [queryClient]);
+
   const { data: stats, isLoading, error } = useQuery({
     queryKey: ['dashboardStats'],
     queryFn: async () => {
@@ -96,6 +147,7 @@ export const DashboardPage = () => {
           <Button 
             type="default" 
             size="large"
+            onClick={() => navigate('/transactions')}
             style={{
               borderRadius: 12,
               borderColor: '#689071',

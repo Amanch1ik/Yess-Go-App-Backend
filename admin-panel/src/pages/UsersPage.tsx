@@ -47,7 +47,7 @@ import PageHeader from '@/components/PageHeader';
 import { DeleteButton } from '@/components/DeleteButton';
 import dayjs from 'dayjs';
 import { t } from '@/i18n';
-import { exportToCSV, exportToJSON } from '@/utils/exportUtils';
+import { exportToCSV, exportToExcel, exportToJSON } from '@/utils/exportUtils';
 import '../styles/animations.css';
 
 const { RangePicker } = DatePicker;
@@ -215,7 +215,19 @@ export const UsersPage = () => {
     }
   };
 
-  const handleExport = (format: 'csv' | 'json' = 'csv') => {
+  const handleExport = (format: 'csv' | 'excel' | 'json' = 'csv') => {
+    // Используем отфильтрованные данные для экспорта (если есть фильтры)
+    // Иначе используем все данные
+    const dataToExport = filteredUsers.length > 0 ? filteredUsers : users;
+    
+    // Проверяем, что есть данные для экспорта
+    if (!dataToExport || dataToExport.length === 0) {
+      message.warning(t('common.noDataToExport', 'Нет данных для экспорта'));
+      return;
+    }
+    
+    console.log('Exporting users:', { count: dataToExport.length, sample: dataToExport[0] });
+
     const exportColumns = [
       { key: 'id', title: t('users.export.id', 'ID') },
       { key: 'name', title: t('users.export.name', 'Имя') },
@@ -234,12 +246,20 @@ export const UsersPage = () => {
       },
     ];
 
-    if (format === 'csv') {
-      exportToCSV(users, exportColumns, 'users');
-      message.success(t('common.exportSuccess', 'Файл успешно загружен'));
-    } else {
-      exportToJSON(users, 'users');
-      message.success(t('common.exportSuccess', 'Файл успешно загружен'));
+    try {
+      if (format === 'csv') {
+        exportToCSV(dataToExport, exportColumns, 'users');
+        message.success(t('common.exportSuccess', 'Файл успешно загружен'));
+      } else if (format === 'excel') {
+        exportToExcel(dataToExport, exportColumns, 'users');
+        message.success(t('common.exportSuccess', 'Файл успешно загружен'));
+      } else {
+        exportToJSON(dataToExport, 'users');
+        message.success(t('common.exportSuccess', 'Файл успешно загружен'));
+      }
+    } catch (error) {
+      console.error('Export error:', error);
+      message.error(t('common.exportError', 'Ошибка при экспорте данных'));
     }
   };
 
@@ -330,73 +350,85 @@ export const UsersPage = () => {
       render: (_: any, record: User) => (
         <Space size="small">
           <Tooltip title={t('common.view', 'Просмотр')}>
-          <Button
-            type="text"
-            size="small"
-            icon={<EyeOutlined />}
-              onClick={() => handleViewDetails(record)}
-          />
+            <span style={{ display: 'inline-block' }}>
+              <Button
+                type="text"
+                size="small"
+                icon={<EyeOutlined />}
+                onClick={() => handleViewDetails(record)}
+              />
+            </span>
           </Tooltip>
           <Tooltip title={t('common.edit', 'Редактировать')}>
-          <Button
-            type="text"
-            size="small"
-            icon={<EditOutlined />}
-              onClick={() => handleEdit(record)}
-            />
+            <span style={{ display: 'inline-block' }}>
+              <Button
+                type="text"
+                size="small"
+                icon={<EditOutlined />}
+                onClick={() => handleEdit(record)}
+              />
+            </span>
           </Tooltip>
           {record.is_active ? (
             <Tooltip title={t('users.block', 'Заблокировать')}>
-              <Button
-                type="text"
-                size="small"
-                danger
-                icon={<LockOutlined />}
-                onClick={() => handleBlock(record.id)}
-              />
+              <span style={{ display: 'inline-block' }}>
+                <Button
+                  type="text"
+                  size="small"
+                  danger
+                  icon={<LockOutlined />}
+                  onClick={() => handleBlock(record.id)}
+                />
+              </span>
             </Tooltip>
           ) : (
             <Tooltip title={t('users.unblock', 'Разблокировать')}>
-              <Button
-                type="text"
-                size="small"
-                icon={<UnlockOutlined />}
-                onClick={() => handleUnblock(record.id)}
-              />
+              <span style={{ display: 'inline-block' }}>
+                <Button
+                  type="text"
+                  size="small"
+                  icon={<UnlockOutlined />}
+                  onClick={() => handleUnblock(record.id)}
+                />
+              </span>
             </Tooltip>
           )}
           <Tooltip title={t('common.delete', 'Удалить')}>
-            <DeleteButton
-              onDelete={() => {
-                // handleDelete уже показывает модальное окно, поэтому просто вызываем API напрямую
-                usersApi.delete(record.id).then(() => {
-                  message.success('Пользователь удален');
-                  refetch();
-                }).catch(() => {
-                  message.error('Ошибка при удалении');
-                });
-              }}
-              text=""
-              className="danger compact icon-only"
-              confirmTitle={t('common.deleteConfirm', 'Удалить пользователя?')}
-              confirmContent={t('common.deleteWarning', 'Это действие нельзя отменить')}
-              confirmOkText={t('common.delete', 'Удалить')}
-              confirmCancelText={t('common.cancel', 'Отменить')}
-            />
+            <span style={{ display: 'inline-block' }}>
+              <DeleteButton
+                onDelete={() => {
+                  // handleDelete уже показывает модальное окно, поэтому просто вызываем API напрямую
+                  usersApi.delete(record.id).then(() => {
+                    message.success('Пользователь удален');
+                    refetch();
+                  }).catch(() => {
+                    message.error('Ошибка при удалении');
+                  });
+                }}
+                text=""
+                className="danger compact icon-only"
+                confirmTitle={t('common.deleteConfirm', 'Удалить пользователя?')}
+                confirmContent={t('common.deleteWarning', 'Это действие нельзя отменить')}
+                confirmOkText={t('common.delete', 'Удалить')}
+                confirmCancelText={t('common.cancel', 'Отменить')}
+              />
+            </span>
           </Tooltip>
           <Tooltip title={t('users.transfer.title', 'Перевод баллов')}>
-          <Button
-            type="text"
-            size="small"
-            icon={<SwapOutlined />}
-            onClick={() => {
-              setTransferFromUser(record);
-              transferForm.resetFields();
-              transferForm.setFieldsValue({ from_user_id: record.id });
-              setIsTransferModalOpen(true);
-            }}
-            style={{ color: '#689071' }}
-          />
+            <span style={{ display: 'inline-block' }}>
+              <Button
+                type="text"
+                size="small"
+                icon={<SwapOutlined />}
+                onClick={() => {
+                  setTransferFromUser(record);
+                  transferForm.resetFields();
+                  transferForm.setFieldsValue({ from_user_id: record.id });
+                  setIsTransferModalOpen(true);
+                }}
+                style={{ color: '#689071' }}
+              />
+            </span>
           </Tooltip>
         </Space>
       ),
@@ -593,6 +625,11 @@ export const UsersPage = () => {
                       key: 'csv', 
                       label: t('common.exportCSV', 'Экспорт в CSV'), 
                       onClick: () => handleExport('csv') 
+                    },
+                    { 
+                      key: 'excel', 
+                      label: t('common.exportExcel', 'Экспорт в Excel'), 
+                      onClick: () => handleExport('excel') 
                     },
                     { 
                       key: 'json', 

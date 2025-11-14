@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { Card, Table, Button, Tag, Avatar, Space, Modal, Form, Input, InputNumber, DatePicker, message, Spin } from 'antd';
-import { PlusOutlined, ShopOutlined, EditOutlined } from '@ant-design/icons';
+import { Card, Table, Button, Tag, Avatar, Space, Modal, Form, Input, InputNumber, DatePicker, message, Spin, Dropdown } from 'antd';
+import { PlusOutlined, ShopOutlined, EditOutlined, ExportOutlined } from '@ant-design/icons';
 import { DeleteButton } from '../components/DeleteButton';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { promotionsApi } from '../services/api';
+import { exportToCSV, exportToExcel, exportToJSON } from '../utils/exportUtils';
 import dayjs from 'dayjs';
 
 const promotionsData = [
@@ -197,26 +198,84 @@ export const PromotionsPage = () => {
     },
   ];
 
+  // Экспорт данных
+  const handleExport = (format: 'csv' | 'excel' | 'json' = 'csv') => {
+    if (!allPromotions || allPromotions.length === 0) {
+      message.warning('Нет данных для экспорта');
+      return;
+    }
+
+    const exportColumns = [
+      { key: 'id', title: 'ID' },
+      { key: 'title', title: 'Название' },
+      { key: 'discount', title: 'Скидка (%)', render: (val: number) => `${val}%` },
+      { key: 'period', title: 'Период' },
+      { key: 'partner', title: 'Партнер' },
+    ];
+
+    try {
+      if (format === 'csv') {
+        exportToCSV(allPromotions, exportColumns, 'promotions');
+        message.success('Файл успешно загружен');
+      } else if (format === 'excel') {
+        exportToExcel(allPromotions, exportColumns, 'promotions');
+        message.success('Файл успешно загружен');
+      } else {
+        exportToJSON(allPromotions, 'promotions');
+        message.success('Файл успешно загружен');
+      }
+    } catch (error) {
+      console.error('Export error:', error);
+      message.error('Ошибка при экспорте данных');
+    }
+  };
+
+  const exportMenuItems = [
+    { key: 'csv', label: 'Экспорт в CSV', onClick: () => handleExport('csv') },
+    { key: 'excel', label: 'Экспорт в Excel', onClick: () => handleExport('excel') },
+    { key: 'json', label: 'Экспорт в JSON', onClick: () => handleExport('json') },
+  ];
+
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
         <h1 style={{ fontSize: 32, fontWeight: 700, margin: 0, color: '#0F2A1D', background: 'linear-gradient(135deg, #0F2A1D 0%, #689071 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
           🎁 Акции и сторисы
         </h1>
-        <Button
-          type="primary"
-          icon={<PlusOutlined />}
-          onClick={handleCreate}
-          style={{
-            background: 'linear-gradient(135deg, #689071 0%, #AEC380 100%)',
-            border: 'none',
-            borderRadius: 12,
-            height: 40,
-            fontWeight: 600,
-          }}
-        >
-          + Создать акцию
-        </Button>
+        <Space>
+          <Dropdown
+            menu={{ items: exportMenuItems }}
+            trigger={['click']}
+          >
+            <Button
+              type="default"
+              icon={<ExportOutlined />}
+              style={{
+                borderRadius: 12,
+                borderColor: '#689071',
+                color: '#689071',
+                height: 40,
+                fontWeight: 600,
+              }}
+            >
+              Экспорт
+            </Button>
+          </Dropdown>
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={handleCreate}
+            style={{
+              background: 'linear-gradient(135deg, #689071 0%, #AEC380 100%)',
+              border: 'none',
+              borderRadius: 12,
+              height: 40,
+              fontWeight: 600,
+            }}
+          >
+            + Создать акцию
+          </Button>
+        </Space>
       </div>
 
       <Card

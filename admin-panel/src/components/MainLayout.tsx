@@ -23,6 +23,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { api } from '@/services/api';
 import i18n, { t } from '@/i18n';
+import { NotificationCenter } from './NotificationCenter';
 import './MainLayout.css';
 import '../styles/animations.css';
 
@@ -37,6 +38,7 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchActive, setIsSearchActive] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [language, setLanguage] = useState(localStorage.getItem('language') || 'ru');
   const [profileForm] = Form.useForm();
   const location = useLocation();
@@ -323,7 +325,7 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
         }}
       >
         <div className="sidebar-logo">
-          <span style={{ color: '#ffffff', fontWeight: 'bold', fontSize: 24 }}>YESS!Partner</span>
+          <span style={{ color: '#ffffff', fontWeight: 'bold', fontSize: 24 }}>YESS!Admin</span>
         </div>
         <Menu
           mode="inline"
@@ -397,33 +399,19 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
                 { label: 'Кыргызча', value: 'kg' },
               ]}
             />
-            <Dropdown
-              menu={{
-                items: (unreadNotifications as any[])?.slice(0, 5).map((notif: any) => ({
-                  key: notif.id,
-                  label: (
-                    <div style={{ maxWidth: 300, padding: '8px 0' }}>
-                      <p style={{ margin: 0, fontWeight: 500 }}>{notif.title || t('notifications.notification', 'Уведомление')}</p>
-                      <p style={{ margin: '4px 0 0 0', color: '#666', fontSize: 12 }}>
-                        {notif.message}
-                      </p>
-                    </div>
-                  ),
-                })) || [],
-              }}
-              placement="bottomRight"
-              trigger={['click']}
+            <div 
+              className="header-notification"
+              onClick={() => setIsNotificationOpen(true)}
+              style={{ cursor: 'pointer' }}
             >
-              <div className="header-notification">
-                <Badge 
-                  count={unreadCount} 
-                  size="small"
-                  style={{ backgroundColor: unreadCount > 0 ? '#52c41a' : '#d9d9d9' }}
-                >
-                  <BellOutlined style={{ fontSize: 18, color: '#262626' }} />
-                </Badge>
-              </div>
-            </Dropdown>
+              <Badge 
+                count={unreadCount} 
+                size="small"
+                style={{ backgroundColor: unreadCount > 0 ? '#689071' : '#d9d9d9' }}
+              >
+                <BellOutlined style={{ fontSize: 18, color: '#0F2A1D', cursor: 'pointer' }} />
+              </Badge>
+            </div>
             <Dropdown 
               menu={{ items: userMenuItems }} 
               placement="bottomRight" 
@@ -519,6 +507,46 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
           </Form.Item>
         </Form>
       </Modal>
+
+      {/* Центр уведомлений */}
+      <NotificationCenter
+        open={isNotificationOpen}
+        onClose={() => setIsNotificationOpen(false)}
+        notifications={[
+          ...(unreadNotifications as any[])?.map((notif: any) => ({
+            id: String(notif.id || Math.random()),
+            title: notif.title || t('notifications.notification', 'Уведомление'),
+            message: notif.message || '',
+            type: 'info' as const,
+            timestamp: notif.created_at ? new Date(notif.created_at).toLocaleString('ru-RU') : 'Только что',
+            read: notif.is_read || false,
+          })),
+          {
+            id: '1',
+            title: 'Новый пользователь зарегистрирован',
+            message: 'Пользователь John Doe успешно зарегистрирован в системе',
+            type: 'success' as const,
+            timestamp: '2 минуты назад',
+            read: false,
+          },
+          {
+            id: '2',
+            title: 'Новый партнер добавлен',
+            message: 'Партнер "Кафе Центральное" был добавлен в систему',
+            type: 'info' as const,
+            timestamp: '1 час назад',
+            read: false,
+          },
+          {
+            id: '3',
+            title: 'Транзакция обработана',
+            message: 'Транзакция на сумму 5,000 сом успешно обработана',
+            type: 'success' as const,
+            timestamp: '3 часа назад',
+            read: true,
+          },
+        ]}
+      />
     </Layout>
   );
 };

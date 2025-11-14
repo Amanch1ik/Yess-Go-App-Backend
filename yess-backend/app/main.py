@@ -1,4 +1,5 @@
 import json
+import os
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -23,27 +24,22 @@ app = FastAPI(
 )
 
 # ---- CORS (должен быть ПЕРВЫМ) ----
-# Убеждаемся, что CORS_ORIGINS содержит нужные origins
-cors_origins = settings.CORS_ORIGINS if settings.CORS_ORIGINS else [
-    "http://localhost:3000",
-    "http://localhost:3001",
-    "http://localhost:3002",
-    "http://127.0.0.1:3000",
-    "http://127.0.0.1:3001",
-    "http://127.0.0.1:3002",
-]
+# Получаем CORS origins с учетом окружения (development/production)
+cors_origins = settings.get_cors_origins() if hasattr(settings, 'get_cors_origins') else settings.CORS_ORIGINS
 
 # Добавляем CORS middleware ПЕРВЫМ, чтобы он обрабатывал все запросы
 # В режиме разработки используем allow_origin_regex для гибкости
 import re
-# Расширяем список origins для включения всех localhost портов
+# Расширяем список origins для включения всех localhost портов (только в development)
 extended_origins = cors_origins.copy()
-# Добавляем дополнительные порты если нужно
-for port in [3000, 3001, 3002, 3003, 3004, 3005]:
-    extended_origins.extend([
-        f"http://localhost:{port}",
-        f"http://127.0.0.1:{port}"
-    ])
+env = os.getenv("APP_ENV", os.getenv("ENVIRONMENT", "development")).lower()
+if env != "production":
+    # Добавляем дополнительные порты только в development
+    for port in [3000, 3001, 3002, 3003, 3004, 3005]:
+        extended_origins.extend([
+            f"http://localhost:{port}",
+            f"http://127.0.0.1:{port}"
+        ])
 
 app.add_middleware(
     CORSMiddleware,

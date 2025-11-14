@@ -4,7 +4,7 @@ import { Table, Card, Tag, Select, Space, Button, Dropdown, Avatar, message } fr
 import { DownloadOutlined, UserOutlined, ShopOutlined } from '@ant-design/icons';
 import { transactionsApi } from '@/services/api';
 import { t } from '@/i18n';
-import { exportToCSV, exportToJSON } from '@/utils/exportUtils';
+import { exportToCSV, exportToExcel, exportToJSON } from '@/utils/exportUtils';
 import dayjs from 'dayjs';
 import '../styles/animations.css';
 
@@ -39,7 +39,13 @@ export const TransactionsPage = () => {
     return '#0F2A1D';
   };
 
-  const handleExport = (format: 'csv' | 'json' = 'csv') => {
+  const handleExport = (format: 'csv' | 'excel' | 'json' = 'csv') => {
+    // Проверяем, что есть данные для экспорта
+    if (!transactions || transactions.length === 0) {
+      message.warning(t('common.noDataToExport', 'Нет данных для экспорта'));
+      return;
+    }
+
     const exportColumns = [
       { key: 'id', title: t('transactions.export.id', 'ID') },
       { key: 'user_id', title: t('transactions.export.user', 'Пользователь') },
@@ -49,12 +55,20 @@ export const TransactionsPage = () => {
       { key: 'created_at', title: t('transactions.export.date', 'Дата'), render: (val: string) => dayjs(val).format('DD.MM.YYYY HH:mm:ss') },
     ];
 
-    if (format === 'csv') {
-      exportToCSV(transactions, exportColumns, 'transactions');
-      message.success(t('common.exportSuccess', 'Файл успешно загружен'));
-    } else {
-      exportToJSON(transactions, 'transactions');
-      message.success(t('common.exportSuccess', 'Файл успешно загружен'));
+    try {
+      if (format === 'csv') {
+        exportToCSV(transactions, exportColumns, 'transactions');
+        message.success(t('common.exportSuccess', 'Файл успешно загружен'));
+      } else if (format === 'excel') {
+        exportToExcel(transactions, exportColumns, 'transactions');
+        message.success(t('common.exportSuccess', 'Файл успешно загружен'));
+      } else {
+        exportToJSON(transactions, 'transactions');
+        message.success(t('common.exportSuccess', 'Файл успешно загружен'));
+      }
+    } catch (error) {
+      console.error('Export error:', error);
+      message.error(t('common.exportError', 'Ошибка при экспорте данных'));
     }
   };
 
@@ -145,6 +159,7 @@ export const TransactionsPage = () => {
 
   const exportMenuItems = [
     { key: 'csv', label: t('common.exportCSV', 'Экспорт в CSV'), onClick: () => handleExport('csv') },
+    { key: 'excel', label: t('common.exportExcel', 'Экспорт в Excel'), onClick: () => handleExport('excel') },
     { key: 'json', label: t('common.exportJSON', 'Экспорт в JSON'), onClick: () => handleExport('json') },
   ];
 

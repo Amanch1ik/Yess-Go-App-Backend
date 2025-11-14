@@ -36,11 +36,46 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
   (response) => response,
   (error: AxiosError) => {
-    if (error.response?.status === 401) {
-      // Токен истек или невалиден
-      localStorage.removeItem('admin_token');
-      window.location.href = '/login';
+    // Расширенная обработка ошибок
+    if (error.response) {
+      const status = error.response.status;
+      const data = error.response.data as any;
+      
+      switch (status) {
+        case 401:
+          // Токен истек или невалиден
+          localStorage.removeItem('admin_token');
+          if (window.location.pathname !== '/login') {
+            window.location.href = '/login';
+          }
+          console.error('Ошибка авторизации:', data?.detail || 'Unauthorized');
+          break;
+        case 403:
+          console.error('Доступ запрещен:', data?.detail || 'Forbidden');
+          break;
+        case 404:
+          console.error('Ресурс не найден:', data?.detail || 'Not Found');
+          break;
+        case 422:
+          console.error('Ошибка валидации:', data?.detail || 'Validation Error');
+          break;
+        case 500:
+          console.error('Ошибка сервера:', data?.detail || 'Internal Server Error');
+          break;
+        case 503:
+          console.error('Сервис недоступен:', data?.detail || 'Service Unavailable');
+          break;
+        default:
+          console.error('Ошибка API:', data?.detail || error.message);
+      }
+    } else if (error.request) {
+      // Запрос отправлен, но ответа нет
+      console.error('Нет ответа от сервера. Проверьте подключение к бэкенду.');
+    } else {
+      // Ошибка при настройке запроса
+      console.error('Ошибка запроса:', error.message);
     }
+    
     return Promise.reject(error);
   }
 );

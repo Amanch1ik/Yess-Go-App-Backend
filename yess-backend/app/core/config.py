@@ -66,6 +66,38 @@ class Settings(BaseSettings):
         "http://127.0.0.1:3002",  # Partner panel
         "http://127.0.0.1:8000",
     ]
+    
+    def get_cors_origins(self) -> List[str]:
+        """Получить CORS origins в зависимости от окружения"""
+        base_origins = self.CORS_ORIGINS.copy()
+        
+        # Проверяем переменную окружения для production origins
+        env = os.getenv("APP_ENV", os.getenv("ENVIRONMENT", "development")).lower()
+        
+        if env == "production":
+            # Добавить production origins из переменной окружения
+            prod_origins_str = os.getenv("CORS_ORIGINS", "")
+            if prod_origins_str:
+                import json
+                try:
+                    # Пробуем распарсить как JSON массив
+                    prod_list = json.loads(prod_origins_str)
+                    if isinstance(prod_list, list):
+                        base_origins.extend(prod_list)
+                except (json.JSONDecodeError, ValueError):
+                    # Если не JSON, пробуем как разделенный запятыми список
+                    prod_list = [origin.strip() for origin in prod_origins_str.split(",") if origin.strip()]
+                    base_origins.extend(prod_list)
+        
+        # Удаляем дубликаты, сохраняя порядок
+        seen = set()
+        unique_origins = []
+        for origin in base_origins:
+            if origin not in seen:
+                seen.add(origin)
+                unique_origins.append(origin)
+        
+        return unique_origins
 
     # Rate limiting
     RATE_LIMIT_ENABLED: bool = True

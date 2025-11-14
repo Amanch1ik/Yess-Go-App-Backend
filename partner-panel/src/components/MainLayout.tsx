@@ -192,7 +192,7 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
         }}
       >
         <div className="partner-logo">
-          <span style={{ color: '#ffffff', fontWeight: 'bold', fontSize: 24 }}>Yess!Partner</span>
+          <span style={{ color: '#ffffff', fontWeight: 'bold', fontSize: 24 }}>YESS!Partner</span>
         </div>
         <Menu
           mode="inline"

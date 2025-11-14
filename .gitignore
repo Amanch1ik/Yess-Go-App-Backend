@@ -41,6 +41,8 @@ yarn-error.log*
 .env.development.local
 .env.test.local
 .env.production.local
+# But keep .env.example files for team reference
+!.env.example
 
 # IDE
 .vscode/

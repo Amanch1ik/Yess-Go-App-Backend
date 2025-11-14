@@ -17,11 +17,15 @@ import 'dayjs/locale/ru';
 import { t } from '@/i18n';
 import { QuickActions } from '@/components/QuickActions';
 import { RecentActivity } from '@/components/RecentActivity';
+import { connectWebSocket, wsService } from '@/services/websocket';
+import { useQueryClient } from '@tanstack/react-query';
+import { useEffect } from 'react';
 import '../styles/animations.css';
 
 const { RangePicker } = DatePicker;
 
 export const DashboardPage = () => {
+  const queryClient = useQueryClient();
   const [dateRange, setDateRange] = useState<[Dayjs, Dayjs]>(() => {
     try {
       // По умолчанию - последние 7 дней
@@ -36,6 +40,55 @@ export const DashboardPage = () => {
     }
   });
 
+  // WebSocket интеграция для реал-тайм обновлений
+  useEffect(() => {
+    // Проверяем, включен ли WebSocket
+    const wsEnabled = import.meta.env.VITE_WS_ENABLED !== 'false';
+    if (!wsEnabled) {
+      return;
+    }
+
+    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+    const wsUrl = apiUrl.replace(/^http/, 'ws') + '/ws';
+    
+    // Подключаемся к WebSocket только если он не был отключен ранее
+    if (!wsService.hasConnectionFailed()) {
+      connectWebSocket(wsUrl);
+    }
+    
+    // Подписка на обновления транзакций
+    const unsubscribeTransactions = wsService.on('transaction', (data) => {
+      // Обновляем кэш транзакций при получении новых данных
+      queryClient.invalidateQueries(['recent-transactions']);
+      queryClient.invalidateQueries(['transactions']);
+      queryClient.invalidateQueries(['dashboard-stats']);
+    });
+    
+    // Подписка на обновления пользователей
+    const unsubscribeUsers = wsService.on('user_update', (data) => {
+      queryClient.invalidateQueries(['dashboard-stats']);
+    });
+    
+    // Подписка на обновления партнеров
+    const unsubscribePartners = wsService.on('partner_update', (data) => {
+      queryClient.invalidateQueries(['dashboard-stats']);
+    });
+    
+    // Подписка на уведомления
+    const unsubscribeNotifications = wsService.on('notification', (data) => {
+      // Можно показать уведомление пользователю
+      console.log('New notification:', data);
+    });
+    
+    return () => {
+      unsubscribeTransactions();
+      unsubscribeUsers();
+      unsubscribePartners();
+      unsubscribeNotifications();
+      // Не отключаем WebSocket полностью, так как он может использоваться другими компонентами
+    };
+  }, [queryClient]);
+
   const { data: stats } = useQuery({
     queryKey: ['dashboard-stats'],
     queryFn: async () => {
@@ -48,6 +101,7 @@ export const DashboardPage = () => {
       }
     },
     retry: 1,
+    refetchInterval: 30000, // Обновление каждые 30 секунд
   });
 
   const { data: recentTransactions } = useQuery({

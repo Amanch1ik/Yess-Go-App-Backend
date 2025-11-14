@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { Card, Table, Tag, Button, Space, Select, Input, DatePicker, Spin, message } from 'antd';
-import { PlusOutlined, DownloadOutlined } from '@ant-design/icons';
+import { Card, Table, Tag, Button, Space, Select, Input, DatePicker, Spin, message, Dropdown } from 'antd';
+import { PlusOutlined, DownloadOutlined, ExportOutlined } from '@ant-design/icons';
 import { DeleteButton } from '../components/DeleteButton';
 import { useQuery } from '@tanstack/react-query';
 import { transactionsApi } from '../services/api';
+import { exportToCSV, exportToExcel, exportToJSON } from '../utils/exportUtils';
 import dayjs from 'dayjs';
 import 'dayjs/locale/ru';
 
@@ -83,9 +84,68 @@ export const TransactionsPage = () => {
   // Используем данные из API или моковые
   const allTransactions = transactionsResponse || transactionsData;
 
-  const handleExport = () => {
-    message.info('Функция экспорта будет доступна в следующей версии');
+  const handleExport = (format: 'csv' | 'excel' | 'json' = 'csv') => {
+    // Проверяем, что есть данные для экспорта
+    if (!allTransactions || allTransactions.length === 0) {
+      message.warning('Нет данных для экспорта');
+      return;
+    }
+
+    const exportColumns = [
+      { 
+        key: 'date', 
+        title: 'Дата',
+        render: (val: string) => val || ''
+      },
+      { 
+        key: 'user', 
+        title: 'Пользователь',
+        render: (val: any, record: any) => record.user?.name || ''
+      },
+      { 
+        key: 'partner', 
+        title: 'Партнер',
+        render: (val: any, record: any) => record.partner?.name || ''
+      },
+      { 
+        key: 'amount', 
+        title: 'Сумма',
+        render: (val: number) => `${val > 0 ? '+' : ''}${val.toLocaleString('ru-RU')} Yess!Coin`
+      },
+      { 
+        key: 'type', 
+        title: 'Тип',
+        render: (val: string) => val || ''
+      },
+      { 
+        key: 'status', 
+        title: 'Статус',
+        render: (val: string) => val || ''
+      },
+    ];
+
+    try {
+      if (format === 'csv') {
+        exportToCSV(allTransactions, exportColumns, 'transactions');
+        message.success('Файл успешно загружен');
+      } else if (format === 'excel') {
+        exportToExcel(allTransactions, exportColumns, 'transactions');
+        message.success('Файл успешно загружен');
+      } else {
+        exportToJSON(allTransactions, 'transactions');
+        message.success('Файл успешно загружен');
+      }
+    } catch (error) {
+      console.error('Export error:', error);
+      message.error('Ошибка при экспорте данных');
+    }
   };
+
+  const exportMenuItems = [
+    { key: 'csv', label: 'Экспорт в CSV', onClick: () => handleExport('csv') },
+    { key: 'excel', label: 'Экспорт в Excel', onClick: () => handleExport('excel') },
+    { key: 'json', label: 'Экспорт в JSON', onClick: () => handleExport('json') },
+  ];
 
   const columns = [
     {
@@ -182,20 +242,24 @@ export const TransactionsPage = () => {
         <h1 style={{ fontSize: 32, fontWeight: 700, margin: 0, color: '#0F2A1D', background: 'linear-gradient(135deg, #0F2A1D 0%, #689071 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
           💳 Транзакции
         </h1>
-        <Button
-          type="primary"
-          icon={<DownloadOutlined />}
-          onClick={handleExport}
-          style={{
-            background: 'linear-gradient(135deg, #689071 0%, #AEC380 100%)',
-            border: 'none',
-            borderRadius: 12,
-            height: 40,
-            fontWeight: 600,
-          }}
+        <Dropdown
+          menu={{ items: exportMenuItems }}
+          trigger={['click']}
         >
-          Скачать отчет
-        </Button>
+          <Button
+            type="primary"
+            icon={<ExportOutlined />}
+            style={{
+              background: 'linear-gradient(135deg, #689071 0%, #AEC380 100%)',
+              border: 'none',
+              borderRadius: 12,
+              height: 40,
+              fontWeight: 600,
+            }}
+          >
+            Экспорт
+          </Button>
+        </Dropdown>
       </div>
 
       <Card

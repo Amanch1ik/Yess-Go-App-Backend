@@ -38,7 +38,7 @@ export const QuickActions = () => {
       key: 'report',
       icon: <FileTextOutlined />,
       label: 'Скачать отчет',
-      onClick: () => console.log('Download report'),
+      onClick: () => navigate('/transactions'),
       color: '#689071',
     },
     {
@@ -73,7 +73,6 @@ export const QuickActions = () => {
           <Col xs={12} sm={8} md={6} key={action.key}>
             <Button
               type="default"
-              icon={action.icon}
               onClick={action.onClick}
               block
               style={{

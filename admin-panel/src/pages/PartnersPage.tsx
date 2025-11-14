@@ -38,7 +38,7 @@ import type { Partner } from '@/services/api';
 import PageHeader from '@/components/PageHeader';
 import { DeleteButton } from '@/components/DeleteButton';
 import { t } from '@/i18n';
-import { exportToCSV, exportToJSON } from '@/utils/exportUtils';
+import { exportToCSV, exportToExcel, exportToJSON } from '@/utils/exportUtils';
 import '../styles/animations.css';
 
 export const PartnersPage = () => {
@@ -134,7 +134,16 @@ export const PartnersPage = () => {
     }
   };
 
-  const handleExport = (format: 'csv' | 'json' = 'csv') => {
+  const handleExport = (format: 'csv' | 'excel' | 'json' = 'csv') => {
+    // Используем отфильтрованные данные для экспорта
+    const dataToExport = filteredPartners.length > 0 ? filteredPartners : partners;
+    
+    // Проверяем, что есть данные для экспорта
+    if (!dataToExport || dataToExport.length === 0) {
+      message.warning(t('common.noDataToExport', 'Нет данных для экспорта'));
+      return;
+    }
+
     const exportColumns = [
       { key: 'id', title: t('partners.export.id', 'ID') },
       { key: 'name', title: t('partners.export.name', 'Название') },
@@ -152,12 +161,20 @@ export const PartnersPage = () => {
       },
     ];
 
-    if (format === 'csv') {
-      exportToCSV(partners, exportColumns, 'partners');
-      message.success(t('common.exportSuccess', 'Файл успешно загружен'));
-    } else {
-      exportToJSON(partners, 'partners');
-      message.success(t('common.exportSuccess', 'Файл успешно загружен'));
+    try {
+      if (format === 'csv') {
+        exportToCSV(dataToExport, exportColumns, 'partners');
+        message.success(t('common.exportSuccess', 'Файл успешно загружен'));
+      } else if (format === 'excel') {
+        exportToExcel(dataToExport, exportColumns, 'partners');
+        message.success(t('common.exportSuccess', 'Файл успешно загружен'));
+      } else {
+        exportToJSON(dataToExport, 'partners');
+        message.success(t('common.exportSuccess', 'Файл успешно загружен'));
+      }
+    } catch (error) {
+      console.error('Export error:', error);
+      message.error(t('common.exportError', 'Ошибка при экспорте данных'));
     }
   };
 
@@ -327,15 +344,17 @@ export const PartnersPage = () => {
               </Button>
             )}
             <Tooltip title={t('common.delete', 'Удалить')}>
-              <DeleteButton
-                onDelete={() => handleDelete(record.id)}
-                text=""
-                className="danger compact icon-only"
-                confirmTitle={t('partners.deleteConfirm', 'Удалить партнера?')}
-                confirmContent={t('partners.deleteWarning', 'Это действие нельзя отменить')}
-                confirmOkText={t('common.delete', 'Удалить')}
-                confirmCancelText={t('common.cancel', 'Отменить')}
-              />
+              <span style={{ display: 'inline-block' }}>
+                <DeleteButton
+                  onDelete={() => handleDelete(record.id)}
+                  text=""
+                  className="danger compact icon-only"
+                  confirmTitle={t('partners.deleteConfirm', 'Удалить партнера?')}
+                  confirmContent={t('partners.deleteWarning', 'Это действие нельзя отменить')}
+                  confirmOkText={t('common.delete', 'Удалить')}
+                  confirmCancelText={t('common.cancel', 'Отменить')}
+                />
+              </span>
             </Tooltip>
             <Dropdown
               menu={{ items: actionMenuItems }}
@@ -361,21 +380,26 @@ export const PartnersPage = () => {
         <h1 style={{ fontSize: 24, fontWeight: 600, color: '#0F2A1D', margin: 0 }}>
           {t('partners.title', 'Партнёры')}
         </h1>
-        <Dropdown
-          menu={{
-            items: [
-              { 
-                key: 'csv', 
-                label: t('common.exportCSV', 'Экспорт в CSV'), 
-                onClick: () => handleExport('csv') 
-              },
-              { 
-                key: 'json', 
-                label: t('common.exportJSON', 'Экспорт в JSON'), 
-                onClick: () => handleExport('json') 
-              },
-            ],
-          }}
+          <Dropdown
+            menu={{
+              items: [
+                { 
+                  key: 'csv', 
+                  label: t('common.exportCSV', 'Экспорт в CSV'), 
+                  onClick: () => handleExport('csv') 
+                },
+                { 
+                  key: 'excel', 
+                  label: t('common.exportExcel', 'Экспорт в Excel'), 
+                  onClick: () => handleExport('excel') 
+                },
+                { 
+                  key: 'json', 
+                  label: t('common.exportJSON', 'Экспорт в JSON'), 
+                  onClick: () => handleExport('json') 
+                },
+              ],
+            }}
           trigger={['click']}
         >
           <Button icon={<ExportOutlined />} type="primary">
