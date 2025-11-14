@@ -3,32 +3,35 @@ version: '3.8'
 services:
   backend:
     build:
-      context: ./Yess-Money---app-master/yess-backend
+      context: ./yess-backend
       dockerfile: Dockerfile.prod
     container_name: yess-backend-prod
     restart: always
     environment:
       - ENV=production
-      - DATABASE_URL=postgresql://yess_user:secure_password@postgres/yess_db
-      - REDIS_URL=redis://redis:6379/0
+      - DATABASE_URL=${DATABASE_URL}
+      - REDIS_URL=${REDIS_URL}
+      - SECRET_KEY=${SECRET_KEY}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
     ports:
       - "8000:8000"
     depends_on:
       - postgres
       - redis
     volumes:
-      - ./Yess-Money---app-master/yess-backend:/app
+      - ./yess-backend:/app
       - ./uploads:/app/uploads
-    command: bash -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"
+    env_file:
+      - .env.production
 
   postgres:
     image: postgres:13
     container_name: yess-postgres-prod
     restart: always
     environment:
-      - POSTGRES_DB=yess_db
-      - POSTGRES_USER=yess_user
-      - POSTGRES_PASSWORD=secure_password
+      - POSTGRES_DB=${POSTGRES_DB:-yess_db}
+      - POSTGRES_USER=${POSTGRES_USER:-yess_user}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
@@ -45,31 +48,38 @@ services:
     image: nginx:latest
     container_name: yess-nginx-prod
     restart: always
+    depends_on:
+      - backend
     ports:
       - "80:80"
       - "443:443"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/conf.d:/etc/nginx/conf.d
       - ./certbot/conf:/etc/letsencrypt
       - ./certbot/www:/var/www/certbot
-    depends_on:
-      - backend
 
   certbot:
     image: certbot/certbot
+    container_name: yess-go-app-backend-certbot-1
+    restart: always
     volumes:
       - ./certbot/conf:/etc/letsencrypt
       - ./certbot/www:/var/www/certbot
     entrypoint: >
-      /bin/sh -c 'trap exit TERM;
+      /bin/sh -c '
+      trap exit TERM;
       while :;
-      do certbot renew;
-      sleep 12h & wait $${!};
-      done;'
+      do
+        certbot renew;
+        sleep 12h & wait $${!};
+      done;
+      '
 
   prometheus:
     image: prom/prometheus
     container_name: yess-prometheus-prod
+    restart: always
     volumes:
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
     ports:
@@ -78,13 +88,12 @@ services:
   grafana:
     image: grafana/grafana
     container_name: yess-grafana-prod
-    ports:
-      - "3000:3000"
+    restart: always
     depends_on:
       - prometheus
+    ports:
+      - "3000:3000"
 
 volumes:
   postgres_data:
   uploads:
-  certbot-etc:
-  certbot-var:
