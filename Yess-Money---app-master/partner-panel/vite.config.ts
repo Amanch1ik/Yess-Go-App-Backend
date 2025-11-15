@@ -2,6 +2,7 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
 
+<<<<<<< HEAD
 export default defineConfig(({ mode }) => {
   const isProduction = mode === 'production';
   
@@ -45,5 +46,23 @@ export default defineConfig(({ mode }) => {
       cssCodeSplit: true,
     },
   };
+=======
+export default defineConfig({
+  plugins: [react()],
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src'),
+    },
+  },
+  server: {
+    port: 3002,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+      },
+    },
+  },
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
 });
 

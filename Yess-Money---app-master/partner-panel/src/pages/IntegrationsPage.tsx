@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, Table, Button, Space, Switch, Modal, Form, Input, message, Spin } from 'antd';
@@ -141,6 +142,58 @@ export const IntegrationsPage = () => {
     navigator.clipboard.writeText(key);
     message.success('Ключ скопирован в буфер обмена');
   };
+=======
+import { Card, Table, Button, Space, Tag, Switch } from 'antd';
+import { CopyOutlined } from '@ant-design/icons';
+import { DeleteButton } from '../components/DeleteButton';
+
+const integrationsData = [
+  {
+    key: '1',
+    id: 1,
+    name: 'POS integration',
+    key: '1a2b3c4d5e6f',
+    date: '20.10.2025 14:29',
+  },
+  {
+    key: '2',
+    id: 2,
+    name: 'Loyalty API',
+    key: '6fg78h9i0j',
+    date: '20.10.2025 14:29',
+  },
+  {
+    key: '3',
+    id: 3,
+    name: 'Webhook',
+    key: '1k2i3m4k5o',
+    date: '20.10.2025 14:29',
+  },
+  {
+    key: '4',
+    id: 4,
+    name: 'POS integration',
+    key: '1a2b3c4d5e6f',
+    date: '20.10.2025 14:29',
+  },
+  {
+    key: '5',
+    id: 5,
+    name: 'Loyalty API',
+    key: '6fg78h9i0j',
+    date: '20.10.2025 14:29',
+  },
+  {
+    key: '6',
+    id: 6,
+    name: 'Webhook',
+    key: '1k2i3m4k5o',
+    date: '20.10.2025 14:29',
+  },
+];
+
+export const IntegrationsPage = () => {
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
   const columns = [
     {
       title: 'ID',
@@ -155,6 +208,7 @@ export const IntegrationsPage = () => {
     },
     {
       title: 'Ключ',
+<<<<<<< HEAD
       dataIndex: 'api_key',
       key: 'api_key',
       render: (key: string) => (
@@ -171,25 +225,53 @@ export const IntegrationsPage = () => {
               title="Скопировать ключ"
             />
           )}
+=======
+      dataIndex: 'key',
+      key: 'key',
+      render: (key: string) => (
+        <Space>
+          <code style={{ background: '#F0F7EB', padding: '4px 8px', borderRadius: 4 }}>{key}</code>
+          <Button
+            type="text"
+            icon={<CopyOutlined />}
+            size="small"
+            onClick={() => {
+              navigator.clipboard.writeText(key);
+            }}
+          />
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
         </Space>
       ),
     },
     {
       title: 'Дата создания',
+<<<<<<< HEAD
       dataIndex: 'created_at',
       key: 'created_at',
       render: (date: string) => date ? dayjs(date).format('DD.MM.YYYY HH:mm') : '-',
+=======
+      dataIndex: 'date',
+      key: 'date',
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
     },
     {
       title: 'Действие',
       key: 'actions',
       render: (_: any, record: any) => (
         <DeleteButton
+<<<<<<< HEAD
           onDelete={() => handleDeleteApiKey(record.id)}
           text=""
           className="danger compact icon-only"
           confirmTitle="Удалить API ключ?"
           confirmContent="Это действие нельзя отменить. После удаления ключ перестанет работать."
+=======
+          onDelete={() => console.log('Delete integration', record.id)}
+          text=""
+          className="danger compact icon-only"
+          confirmTitle="Удалить API ключ?"
+          confirmContent="Это действие нельзя отменить"
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
           confirmOkText="Удалить"
           confirmCancelText="Отменить"
         />
@@ -197,6 +279,7 @@ export const IntegrationsPage = () => {
     },
   ];
 
+<<<<<<< HEAD
   const integrationsData = (apiKeys || []).map((item: any) => ({
     ...item,
     key: item.id,
@@ -214,15 +297,26 @@ export const IntegrationsPage = () => {
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
         <h1 style={{ fontSize: 32, fontWeight: 700, margin: 0, color: '#0F2A1D', background: 'linear-gradient(135deg, #0F2A1D 0%, #689071 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
+=======
+  return (
+    <div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+        <h1 style={{ fontSize: 32, fontWeight: 700, margin: 0, color: '#8B4513' }}>
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
           🔌 Интеграции
         </h1>
         <Button
           type="primary"
+<<<<<<< HEAD
           icon={<PlusOutlined />}
           onClick={() => setIsCreateModalOpen(true)}
           loading={createApiKeyMutation.isPending}
           style={{
             background: 'linear-gradient(135deg, #689071 0%, #AEC380 100%)',
+=======
+          style={{
+            background: 'linear-gradient(135deg, #F5A623 0%, #F7B731 100%)',
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
             border: 'none',
             borderRadius: 12,
             height: 40,
@@ -234,7 +328,11 @@ export const IntegrationsPage = () => {
       </div>
 
       <Card
+<<<<<<< HEAD
         title={<span style={{ color: '#0F2A1D', fontSize: 16, fontWeight: 700 }}>🔑 API Ключи</span>}
+=======
+        title={<span style={{ color: '#8B4513', fontSize: 16, fontWeight: 700 }}>🔑 API Ключи</span>}
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
         style={{
           borderRadius: 16,
           background: 'linear-gradient(135deg, #ffffff 0%, #FFF4E6 100%)',
@@ -252,6 +350,7 @@ export const IntegrationsPage = () => {
       </Card>
 
       <Card
+<<<<<<< HEAD
         title={<span style={{ color: '#0F2A1D', fontSize: 16, fontWeight: 700 }}>🔔 Уведомления</span>}
         style={{
           borderRadius: 16,
@@ -326,12 +425,32 @@ export const IntegrationsPage = () => {
         </Form>
       </Modal>
 
+=======
+        title={<span style={{ color: '#8B4513', fontSize: 16, fontWeight: 700 }}>🔔 Уведомления</span>}
+        style={{
+          borderRadius: 16,
+          background: 'linear-gradient(135deg, #ffffff 0%, #FFF4E6 100%)',
+          border: '1px solid #FFE6CC',
+          boxShadow: '0 2px 12px rgba(245, 166, 35, 0.08)',
+        }}
+      >
+        <Space style={{ width: '100%', justifyContent: 'space-between' }}>
+          <span style={{ color: '#8B4513', fontWeight: 500 }}>Уведомлять клиента о кешбэке</span>
+          <Switch defaultChecked style={{ backgroundColor: '#F5A623' }} />
+        </Space>
+      </Card>
+
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
       <style>{`
         .partner-table-row {
           transition: all 0.3s;
         }
         .partner-table-row:hover {
+<<<<<<< HEAD
           background-color: #F0F7EB !important;
+=======
+          background-color: #FFF4E6 !important;
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
         }
       `}</style>
     </div>

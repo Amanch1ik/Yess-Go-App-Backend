@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { useState } from 'react';
 import { Card, Table, Button, Avatar, Space, Modal, Form, Input, Select, message, Spin, Dropdown } from 'antd';
 import { PlusOutlined, EditOutlined, ExportOutlined } from '@ant-design/icons';
@@ -5,6 +6,11 @@ import { DeleteButton } from '../components/DeleteButton';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { employeesApi } from '../services/api';
 import { exportToCSV, exportToExcel, exportToJSON } from '../utils/exportUtils';
+=======
+import { Card, Table, Button, Avatar, Space } from 'antd';
+import { PlusOutlined } from '@ant-design/icons';
+import { DeleteButton } from '../components/DeleteButton';
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
 
 const employeesData = [
   {
@@ -106,6 +112,7 @@ const employeesData = [
 ];
 
 export const EmployeesPage = () => {
+<<<<<<< HEAD
   const [form] = Form.useForm();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<any>(null);
@@ -185,6 +192,8 @@ export const EmployeesPage = () => {
     }
   };
 
+=======
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
   const columns = [
     {
       title: 'Имя',
@@ -209,6 +218,7 @@ export const EmployeesPage = () => {
       key: 'location',
     },
     {
+<<<<<<< HEAD
       title: 'Действие',
       key: 'actions',
       render: (_: any, record: any) => (
@@ -239,10 +249,35 @@ export const EmployeesPage = () => {
             />
           )}
         </Space>
+=======
+      title: 'Статус',
+      key: 'status',
+      render: (_: any, record: any) => (
+        record.action === 'reset' ? (
+          <Button
+            type="link"
+            style={{ color: '#689071', padding: 0 }}
+            onClick={() => console.log('Reset password', record.id)}
+          >
+            Сбросить пароль
+          </Button>
+        ) : (
+          <DeleteButton
+            onDelete={() => console.log('Dismiss employee', record.id)}
+            text="Уволить"
+            className="danger compact"
+            confirmTitle="Уволить сотрудника?"
+            confirmContent="Это действие нельзя отменить"
+            confirmOkText="Уволить"
+            confirmCancelText="Отменить"
+          />
+        )
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
       ),
     },
   ];
 
+<<<<<<< HEAD
   // Экспорт данных
   const handleExport = (format: 'csv' | 'excel' | 'json' = 'csv') => {
     if (!allEmployees || allEmployees.length === 0) {
@@ -320,11 +355,33 @@ export const EmployeesPage = () => {
             + Добавить сотрудника
           </Button>
         </Space>
+=======
+  return (
+    <div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+        <h1 style={{ fontSize: 32, fontWeight: 700, margin: 0, color: '#8B4513' }}>
+          👥 Сотрудники
+        </h1>
+        <Button
+          type="primary"
+          icon={<PlusOutlined />}
+          style={{
+            background: 'linear-gradient(135deg, #F5A623 0%, #F7B731 100%)',
+            border: 'none',
+            borderRadius: 12,
+            height: 40,
+            fontWeight: 600,
+          }}
+        >
+          + Добавить сотрудника
+        </Button>
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
       </div>
 
       <Card
         style={{
           borderRadius: 16,
+<<<<<<< HEAD
           background: 'linear-gradient(135deg, #ffffff 0%, #F0F7EB 100%)',
           border: '1px solid #E3EED4',
           boxShadow: '0 2px 12px rgba(15, 42, 29, 0.08)',
@@ -385,12 +442,31 @@ export const EmployeesPage = () => {
         </Form>
       </Modal>
 
+=======
+          background: 'linear-gradient(135deg, #ffffff 0%, #FFF4E6 100%)',
+          border: '1px solid #FFE6CC',
+          boxShadow: '0 2px 12px rgba(245, 166, 35, 0.08)',
+        }}
+      >
+        <Table
+          columns={columns}
+          dataSource={employeesData}
+          pagination={{ pageSize: 10 }}
+          rowClassName={() => 'partner-table-row'}
+        />
+      </Card>
+
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
       <style>{`
         .partner-table-row {
           transition: all 0.3s;
         }
         .partner-table-row:hover {
+<<<<<<< HEAD
           background-color: #F0F7EB !important;
+=======
+          background-color: #FFF4E6 !important;
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
         }
       `}</style>
     </div>

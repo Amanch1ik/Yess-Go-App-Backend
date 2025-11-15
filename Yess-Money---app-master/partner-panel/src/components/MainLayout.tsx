@@ -1,6 +1,12 @@
+<<<<<<< HEAD
 import React, { useState, useRef } from 'react';
 import { Layout, Menu, Avatar, Badge, Input, Dropdown, Select, Modal, Form, Upload, App } from 'antd';
 import { useNavigate, useLocation } from 'react-router-dom';
+=======
+import { useState, useRef } from 'react';
+import { Layout, Menu, Avatar, Badge, Input, Dropdown, Space, Spin, Select, Modal, Form, Upload, message } from 'antd';
+import { Outlet, useNavigate, useLocation } from 'react-router-dom';
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
 import {
   DashboardOutlined,
   UserOutlined,
@@ -14,12 +20,16 @@ import {
   SearchOutlined,
   LogoutOutlined,
   GlobalOutlined,
+<<<<<<< HEAD
   SettingOutlined,
 } from '@ant-design/icons';
 import { useAuth } from '@/hooks/useAuth';
 import { useTranslation } from '@/hooks/useTranslation';
 import { i18n } from '@/i18n';
 import { NotificationCenter } from './NotificationCenter';
+=======
+} from '@ant-design/icons';
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
 import './MainLayout.css';
 
 const { Header, Sider, Content } = Layout;
@@ -32,6 +42,7 @@ interface User {
   role?: string;
 }
 
+<<<<<<< HEAD
 interface MainLayoutProps {
   children: React.ReactNode;
 }
@@ -66,6 +77,22 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
     avatar_url: '',
     role: 'partner',
   };
+=======
+export const MainLayout = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [language, setLanguage] = useState(localStorage.getItem('language') || 'ru');
+  const [profileForm] = Form.useForm();
+  const [user, setUser] = useState<User>({
+    id: '1',
+    email: 'partner@example.com',
+    username: 'СыргакТыннаев',
+    avatar_url: '',
+    role: 'partner',
+  });
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
   
   // Debounce для предотвращения double-click
   const lastClickRef = useRef<number>(0);
@@ -77,16 +104,27 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
     }
   };
 
+<<<<<<< HEAD
   const handleLanguageChange = (lang: 'ru' | 'en' | 'kg') => {
     if (lang === language) return;
     setLanguage(lang);
     i18n.setLanguage(lang);
     message.success(t('language.changed', 'Язык изменён'));
+=======
+  const handleLanguageChange = (lang: string) => {
+    if (lang === language) return;
+    setLanguage(lang);
+    message.success('Язык изменён');
+    setTimeout(() => {
+      window.location.reload();
+    }, 300);
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
   };
 
   const handleSearch = (value: string) => {
     setSearchQuery(value);
     if (value.trim()) {
+<<<<<<< HEAD
       const currentPath = location.pathname;
       if (currentPath.startsWith('/transactions')) {
         navigate('/transactions', { state: { search: value } });
@@ -108,12 +146,19 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
     } else {
       // Очищаем поиск при закрытии
       setSearchQuery('');
+=======
+      message.info(`Поиск: ${value}`);
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
     }
   };
 
   const handleLogout = () => {
     debounceClick(() => {
+<<<<<<< HEAD
       logout();
+=======
+      localStorage.removeItem('partner_token');
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
       navigate('/login');
     });
   };
@@ -122,41 +167,70 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
     {
       key: '/',
       icon: <DashboardOutlined />,
+<<<<<<< HEAD
       label: t('nav.home', 'Главная'),
+=======
+      label: 'Главная',
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
     },
     {
       key: '/profile',
       icon: <UserOutlined />,
+<<<<<<< HEAD
       label: t('nav.profile', 'Профиль партнера'),
+=======
+      label: 'Профиль партнера',
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
     },
     {
       key: '/locations',
       icon: <EnvironmentOutlined />,
+<<<<<<< HEAD
       label: t('nav.locations', 'Локации партнёра'),
+=======
+      label: 'Локации партнёра',
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
     },
     {
       key: '/promotions',
       icon: <ShoppingOutlined />,
+<<<<<<< HEAD
       label: t('nav.promotions', 'Акции и сторисы'),
+=======
+      label: 'Акции и сторисы',
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
     },
     {
       key: '/transactions',
       icon: <UnorderedListOutlined />,
+<<<<<<< HEAD
       label: t('nav.transactions', 'Транзакции'),
+=======
+      label: 'Транзакции',
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
     },
     {
       key: '/employees',
       icon: <TeamOutlined />,
+<<<<<<< HEAD
       label: t('nav.employees', 'Сотрудники'),
+=======
+      label: 'Сотрудники',
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
     },
     {
       key: '/integrations',
       icon: <ApiOutlined />,
+<<<<<<< HEAD
       label: t('nav.integrations', 'Интеграции'),
+=======
+      label: 'Интеграции',
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
     },
     {
       key: '/billing',
       icon: <CreditCardOutlined />,
+<<<<<<< HEAD
       label: t('nav.billing', 'Биллинг'),
     },
   ];
@@ -173,18 +247,53 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
       icon: <SettingOutlined />,
       label: t('nav.settings', 'Настройки'),
       onClick: () => navigate('/profile'),
+=======
+      label: 'Биллинг',
+    },
+  ];
+
+  const handleProfileClick = () => {
+    profileForm.setFieldsValue({
+      username: user?.username || '',
+      email: user?.email || '',
+    });
+    setIsProfileModalOpen(true);
+  };
+
+  const handleSaveProfile = () => {
+    profileForm.validateFields().then((values) => {
+      setUser({ ...user, ...values });
+      message.success('Профиль успешно обновлен');
+      setIsProfileModalOpen(false);
+      profileForm.resetFields();
+    });
+  };
+
+  const userMenuItems = [
+    {
+      key: 'profile',
+      label: 'Профиль',
+      icon: <UserOutlined />,
+      onClick: handleProfileClick,
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
     },
     {
       type: 'divider' as const,
     },
     {
       key: 'logout',
+<<<<<<< HEAD
       icon: <LogoutOutlined />,
       label: t('nav.logout', 'Выйти'),
+=======
+      label: 'Выйти',
+      icon: <LogoutOutlined />,
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
       onClick: handleLogout,
     },
   ];
 
+<<<<<<< HEAD
   const handleSaveProfile = () => {
     profileForm.validateFields().then((values) => {
       const updatedUser = { ...user, ...values };
@@ -195,6 +304,8 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
     });
   };
 
+=======
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
   return (
     <Layout className="partner-layout">
       <Sider
@@ -207,7 +318,11 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
         }}
       >
         <div className="partner-logo">
+<<<<<<< HEAD
           <span style={{ color: '#ffffff', fontWeight: 'bold', fontSize: 24 }}>YES!Partner</span>
+=======
+          <span style={{ color: '#F5A623', fontWeight: 'bold', fontSize: 24 }}>Yess!Partner</span>
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
         </div>
         <Menu
           mode="inline"
@@ -221,10 +336,35 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
           }}
           theme="light"
         />
+<<<<<<< HEAD
+=======
+        <div className="partner-sidebar-bottom">
+          <Menu
+            mode="inline"
+            items={[
+              {
+                key: 'profile',
+                icon: <UserOutlined />,
+                label: 'Профиль',
+                onClick: handleProfileClick,
+              },
+              {
+                key: 'logout',
+                icon: <LogoutOutlined />,
+                label: 'Выйти',
+                onClick: handleLogout,
+              },
+            ]}
+            style={{ borderRight: 0, background: '#ffffff' }}
+            theme="light"
+          />
+        </div>
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
       </Sider>
       <Layout style={{ marginLeft: 0, transition: 'margin-left 0.3s ease' }}>
         <Header className="partner-header">
           <div style={{ display: 'flex', alignItems: 'center', gap: 16, flex: 1 }}>
+<<<<<<< HEAD
             <div className={`partner-search ${isSearchActive ? 'active' : ''}`}>
               <Input
                 ref={searchInputRef}
@@ -249,6 +389,23 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
                 <SearchOutlined />
               </button>
             </div>
+=======
+            <Input
+              className="partner-header-search"
+              placeholder="Поиск..."
+              prefix={<SearchOutlined style={{ color: '#8c8c8c' }} />}
+              style={{ 
+                width: 300,
+                borderRadius: 20,
+                background: '#f5f5f5',
+                border: '1px solid #f0f0f0',
+              }}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onPressEnter={(e) => handleSearch((e.target as HTMLInputElement).value)}
+              allowClear
+            />
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
           </div>
           <div className="partner-header-actions">
             <Select
@@ -257,6 +414,7 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
               style={{ width: 110 }}
               suffixIcon={<GlobalOutlined />}
               options={[
+<<<<<<< HEAD
                 { label: t('language.russian', 'Русский'), value: 'ru' },
                 { label: t('language.english', 'English'), value: 'en' },
                 { label: t('language.kyrgyz', 'Кыргызча'), value: 'kg' },
@@ -272,6 +430,20 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
                 style={{ backgroundColor: '#37946e' }}
               >
                 <BellOutlined style={{ fontSize: 18, color: '#223732', cursor: 'pointer' }} />
+=======
+                { label: 'Русский', value: 'ru' },
+                { label: 'English', value: 'en' },
+                { label: 'Кыргызча', value: 'kg' },
+              ]}
+            />
+            <div className="partner-header-notification">
+              <Badge 
+                count={5} 
+                size="small"
+                style={{ backgroundColor: '#F5A623' }}
+              >
+                <BellOutlined style={{ fontSize: 18, color: '#262626' }} />
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
               </Badge>
             </div>
             <Dropdown 
@@ -285,7 +457,11 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
                     src={user?.avatar_url} 
                     icon={<UserOutlined />} 
                     style={{ 
+<<<<<<< HEAD
                       backgroundColor: '#37946e',
+=======
+                      backgroundColor: '#F5A623',
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
                       width: 36,
                       height: 36,
                     }} 
@@ -294,15 +470,22 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
                 </div>
                 <div className="partner-header-user-info">
                   <span className="partner-header-user-name">
+<<<<<<< HEAD
                     {user?.username || user?.email || t('nav.profile', 'Партнер')}
                   </span>
                   <span className="partner-header-user-role">{t('nav.partner', 'Партнер')}</span>
+=======
+                    {user?.username || user?.email || 'Партнер'}
+                  </span>
+                  <span className="partner-header-user-role">Партнер</span>
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
                 </div>
               </div>
             </Dropdown>
           </div>
         </Header>
         <Content className="partner-content fade-in">
+<<<<<<< HEAD
           {children}
         </Content>
       </Layout>
@@ -342,19 +525,34 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
       {/* Модальное окно редактирования профиля */}
       <Modal
         title={t('profile.title', 'Профиль партнера')}
+=======
+          <Outlet />
+        </Content>
+      </Layout>
+
+      {/* Модальное окно редактирования профиля */}
+      <Modal
+        title="Редактировать профиль"
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
         open={isProfileModalOpen}
         onCancel={() => {
           setIsProfileModalOpen(false);
           profileForm.resetFields();
         }}
         onOk={handleSaveProfile}
+<<<<<<< HEAD
         okText={t('common.save', 'Сохранить')}
         cancelText={t('common.cancel', 'Отмена')}
+=======
+        okText="Сохранить"
+        cancelText="Отмена"
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
         width={500}
       >
         <Form form={profileForm} layout="vertical" style={{ marginTop: 24 }}>
           <Form.Item
             name="username"
+<<<<<<< HEAD
             label={t('profile.username', 'Имя пользователя')}
             rules={[
               { required: true, message: t('profile.usernameRequired', 'Введите имя пользователя') },
@@ -376,6 +574,29 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
           <Form.Item
             name="avatar"
             label={t('profile.avatar', 'Фото профиля')}
+=======
+            label="Имя пользователя"
+            rules={[
+              { required: true, message: 'Введите имя пользователя' },
+              { min: 3, message: 'Минимум 3 символа' },
+            ]}
+          >
+            <Input placeholder="Введите имя пользователя" />
+          </Form.Item>
+          <Form.Item
+            name="email"
+            label="Email"
+            rules={[
+              { required: true, message: 'Введите email' },
+              { type: 'email', message: 'Некорректный email' },
+            ]}
+          >
+            <Input placeholder="Введите email" />
+          </Form.Item>
+          <Form.Item
+            name="avatar"
+            label="Фото профиля"
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
             valuePropName="fileList"
             getValueFromEvent={(e) => {
               if (Array.isArray(e)) return e;
@@ -393,7 +614,11 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
               ) : (
                 <div>
                   <UserOutlined />
+<<<<<<< HEAD
                   <div style={{ marginTop: 8 }}>{t('common.upload', 'Загрузить')}</div>
+=======
+                  <div style={{ marginTop: 8 }}>Загрузить</div>
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
                 </div>
               )}
             </Upload>

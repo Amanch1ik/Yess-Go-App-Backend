@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { Card, Button, Table, Tag, Space, message, Spin, Modal, Form, InputNumber, DatePicker, Input } from 'antd';
@@ -150,25 +151,76 @@ export const BillingPage = () => {
       dataIndex: 'invoice_number',
       key: 'invoice_number',
       render: (text: string, record: any) => text || record.id || '-',
+=======
+import { Card, Button, Table, Tag, Space } from 'antd';
+import { DownloadOutlined, EditOutlined } from '@ant-design/icons';
+import { DeleteButton } from '../components/DeleteButton';
+
+const paymentHistoryData = [
+  {
+    key: '1',
+    id: '00124',
+    date: '15.10.2025',
+    amount: 10000,
+    status: 'paid',
+  },
+  {
+    key: '2',
+    id: '00123',
+    date: '15.10.2025',
+    amount: 10000,
+    status: 'paid',
+  },
+  {
+    key: '3',
+    id: '00122',
+    date: '15.10.2025',
+    amount: 10000,
+    status: 'overdue',
+  },
+  {
+    key: '4',
+    id: '00122',
+    date: '15.10.2025',
+    amount: 10000,
+    status: 'paid',
+  },
+];
+
+export const BillingPage = () => {
+  const columns = [
+    {
+      title: '№',
+      dataIndex: 'id',
+      key: 'id',
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
     },
     {
       title: 'Дата',
       dataIndex: 'date',
       key: 'date',
+<<<<<<< HEAD
       render: (date: string) => date ? dayjs(date).format('DD.MM.YYYY') : '-',
+=======
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
     },
     {
       title: 'Сумма',
       dataIndex: 'amount',
       key: 'amount',
       render: (amount: number) => (
+<<<<<<< HEAD
         <span style={{ fontWeight: 600 }}>{amount?.toLocaleString('ru-RU') || 0} сом</span>
+=======
+        <span style={{ fontWeight: 600 }}>{amount.toLocaleString()} сом</span>
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
       ),
     },
     {
       title: 'Статус',
       dataIndex: 'status',
       key: 'status',
+<<<<<<< HEAD
       render: (status: string) => {
         const statusMap: Record<string, { color: string; text: string }> = {
           paid: { color: 'green', text: 'Оплачен' },
@@ -178,6 +230,13 @@ export const BillingPage = () => {
         const statusInfo = statusMap[status] || { color: 'default', text: status };
         return <Tag color={statusInfo.color}>{statusInfo.text}</Tag>;
       },
+=======
+      render: (status: string) => (
+        <Tag color={status === 'paid' ? 'green' : 'red'}>
+          {status === 'paid' ? 'Оплачен' : 'Просрочен'}
+        </Tag>
+      ),
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
     },
     {
       title: 'Действие',
@@ -187,14 +246,33 @@ export const BillingPage = () => {
           <Button
             type="text"
             icon={<DownloadOutlined />}
+<<<<<<< HEAD
             onClick={() => handleDownloadInvoice(record)}
             title="Скачать счет"
+=======
+            onClick={() => console.log('Download', record.id)}
+          />
+          <Button
+            type="text"
+            icon={<EditOutlined />}
+            onClick={() => console.log('Edit', record.id)}
+          />
+          <DeleteButton
+            onDelete={() => console.log('Delete payment', record.id)}
+            text=""
+            className="danger compact icon-only"
+            confirmTitle="Удалить платеж?"
+            confirmContent="Это действие нельзя отменить"
+            confirmOkText="Удалить"
+            confirmCancelText="Отменить"
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
           />
         </Space>
       ),
     },
   ];
 
+<<<<<<< HEAD
   const paymentHistoryData = (billingHistory || []).map((item: any, index: number) => ({
     ...item,
     key: item.id || `invoice-${index}`,
@@ -232,19 +310,46 @@ export const BillingPage = () => {
             📋 Посмотреть тарифы
           </Button>
         </Space>
+=======
+  return (
+    <div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+        <h1 style={{ fontSize: 32, fontWeight: 700, margin: 0, color: '#8B4513' }}>
+          💳 Биллинг
+        </h1>
+        <Button
+          type="default"
+          style={{
+            borderRadius: 12,
+            height: 40,
+            border: '1px solid #FFE6CC',
+            color: '#F5A623',
+          }}
+        >
+          📋 Посмотреть тарифы
+        </Button>
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
       </div>
 
       <Card
         style={{
           borderRadius: 16,
+<<<<<<< HEAD
           background: 'linear-gradient(135deg, #ffffff 0%, #F0F7EB 100%)',
           border: '2px solid #AEC380',
           marginBottom: 24,
           boxShadow: '0 4px 12px rgba(104, 144, 113, 0.15)',
+=======
+          background: 'linear-gradient(135deg, #ffffff 0%, #FFF4E6 100%)',
+          border: '2px solid #F7B731',
+          marginBottom: 24,
+          boxShadow: '0 4px 12px rgba(245, 166, 35, 0.15)',
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
         }}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
+<<<<<<< HEAD
             <div style={{ fontSize: 20, fontWeight: 700, color: '#0F2A1D', marginBottom: 12 }}>
               🏆 {billingInfo?.plan || 'Базовый план'}
             </div>
@@ -267,6 +372,22 @@ export const BillingPage = () => {
             loading={createInvoiceMutation.isPending}
             style={{
               background: 'linear-gradient(135deg, #689071 0%, #AEC380 100%)',
+=======
+            <div style={{ fontSize: 20, fontWeight: 700, color: '#8B4513', marginBottom: 12 }}>
+              🏆 Базовый план
+            </div>
+            <Tag 
+              color="#F5A623"
+              style={{ fontSize: 14, padding: '6px 16px', borderRadius: 12 }}
+            >
+              ✓ Активен
+            </Tag>
+          </div>
+          <Button
+            type="primary"
+            style={{
+              background: 'linear-gradient(135deg, #F5A623 0%, #F7B731 100%)',
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
               border: 'none',
               borderRadius: 12,
               height: 40,
@@ -279,17 +400,27 @@ export const BillingPage = () => {
       </Card>
 
       <Card
+<<<<<<< HEAD
         title={<span style={{ color: '#0F2A1D', fontSize: 16, fontWeight: 700 }}>📊 История оплат</span>}
         style={{
           borderRadius: 16,
           background: 'linear-gradient(135deg, #ffffff 0%, #F0F7EB 100%)',
           border: '1px solid #E3EED4',
           boxShadow: '0 2px 12px rgba(15, 42, 29, 0.08)',
+=======
+        title={<span style={{ color: '#8B4513', fontSize: 16, fontWeight: 700 }}>📊 История оплат</span>}
+        style={{
+          borderRadius: 16,
+          background: 'linear-gradient(135deg, #ffffff 0%, #FFF4E6 100%)',
+          border: '1px solid #FFE6CC',
+          boxShadow: '0 2px 12px rgba(245, 166, 35, 0.08)',
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
         }}
       >
         <Table
           columns={columns}
           dataSource={paymentHistoryData}
+<<<<<<< HEAD
           pagination={{
             pageSize: 10,
             showSizeChanger: true,
@@ -372,12 +503,23 @@ export const BillingPage = () => {
         </Form>
       </Modal>
 
+=======
+          pagination={false}
+          rowClassName={() => 'partner-table-row'}
+        />
+      </Card>
+
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
       <style>{`
         .partner-table-row {
           transition: all 0.3s;
         }
         .partner-table-row:hover {
+<<<<<<< HEAD
           background-color: #F0F7EB !important;
+=======
+          background-color: #FFF4E6 !important;
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
         }
       `}</style>
     </div>

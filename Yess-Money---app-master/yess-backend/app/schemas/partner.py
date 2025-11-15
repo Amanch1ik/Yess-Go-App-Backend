@@ -2,17 +2,17 @@
 from pydantic import BaseModel, Field, validator
 from typing import Optional, List, Dict, Any
 from decimal import Decimal
+from app.schemas.category import CategoryResponse
 
 # ---- Базовые модели ----
 
 class PartnerBase(BaseModel):
     id: int
     name: str
-    category: str
     logo_url: Optional[str] = None
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 # ---- Модель, которую не хватало ----
@@ -20,12 +20,22 @@ class PartnerBase(BaseModel):
 class PartnerResponse(BaseModel):
     id: int
     name: str
-    category: str
     logo_url: Optional[str]
     default_cashback_rate: float
+    categories: List[CategoryResponse] = []  # Список категорий
+    category: Optional[str] = None  # Для обратной совместимости (первая категория)
 
     class Config:
-        orm_mode = True
+        from_attributes = True
+    
+    @validator('category', pre=True, always=True)
+    def set_category_from_categories(cls, v, values):
+        """Устанавливает category из первой категории для обратной совместимости"""
+        if v is None:
+            categories = values.get('categories', [])
+            if categories:
+                return categories[0].name if categories else None
+        return v
 
 
 # ---- Рекомендации ----
@@ -46,33 +56,60 @@ class PartnerDetail(PartnerBase):
     description: Optional[str] = None
     website: Optional[str] = None
     phone: Optional[str] = None
+    email: Optional[str] = None
     address: Optional[str] = None
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
     default_cashback_rate: float = Field(..., ge=0, le=100)
+    cashback_rate: Optional[float] = Field(None, ge=0, le=100)
+    max_discount_percent: Optional[float] = Field(None, ge=0, le=100)
+    categories: List[CategoryResponse] = []
     current_promotions: Optional[List[str]] = None
+    is_verified: bool = False
+    cover_image_url: Optional[str] = None
+    social_media: Optional[Dict[str, Any]] = None
+    
+    class Config:
+        from_attributes = True
+        # Убеждаемся, что все поля включаются в JSON, даже если они None
+        populate_by_name = True
 
 
 # ---- Создание / обновление ----
 
 class PartnerCreate(BaseModel):
     name: str = Field(..., min_length=2, max_length=100)
-    category: str = Field(..., min_length=2, max_length=50)
+    category_ids: List[int] = Field(default_factory=list, description="Список ID категорий")
     logo_url: Optional[str] = None
     description: Optional[str] = None
     website: Optional[str] = None
     phone: Optional[str] = None
+    email: Optional[str] = None
     address: Optional[str] = None
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
     default_cashback_rate: float = Field(default=5.0, ge=0, le=100)
+    max_discount_percent: float = Field(default=10.0, ge=0, le=100)
+    city_id: Optional[int] = None
 
 
 class PartnerUpdate(BaseModel):
     name: Optional[str] = Field(None, min_length=2, max_length=100)
-    category: Optional[str] = Field(None, min_length=2, max_length=50)
+    category_ids: Optional[List[int]] = Field(None, description="Список ID категорий")
     logo_url: Optional[str] = None
+    cover_image_url: Optional[str] = None
     description: Optional[str] = None
     website: Optional[str] = None
     phone: Optional[str] = None
+    email: Optional[str] = None
     address: Optional[str] = None
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
     default_cashback_rate: Optional[float] = Field(None, ge=0, le=100)
+    max_discount_percent: Optional[float] = Field(None, ge=0, le=100)
+    city_id: Optional[int] = None
+    is_active: Optional[bool] = None
+    is_verified: Optional[bool] = None
 
 
 # ---- Локации партнёров ----

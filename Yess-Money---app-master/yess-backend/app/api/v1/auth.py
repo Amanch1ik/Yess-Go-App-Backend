@@ -12,7 +12,10 @@ from app.core.config import settings
 from app.core.database import get_db
 from app.services.auth_service import AuthService
 from app.services.dependencies import get_current_user
-from app.schemas.user import UserCreate, UserResponse, TokenResponse
+from app.schemas.user import (
+    UserCreate, UserResponse, TokenResponse,
+    VerificationCodeRequest, VerifyCodeRequest
+)
 from app.models.user import User
 from pydantic import BaseModel
 
@@ -194,3 +197,75 @@ def get_me(
         referral_code=current_user.referral_code,
         created_at=current_user.created_at
     )
+
+
+@router.post("/send-verification-code")
+async def send_verification_code(
+    request: VerificationCodeRequest,
+    db: Session = Depends(get_db)
+) -> dict:
+    """
+    Отправка SMS-кода на номер телефона для регистрации
+    
+    Принимает JSON:
+    {
+      "phone_number": "+996555123456"
+    }
+    
+    Возвращает:
+    {
+      "message": "Код отправлен",
+      "sid": "verification_sid"
+    }
+    """
+    try:
+        result = await AuthService.send_verification_code(
+            db=db,
+            phone_number=request.phone_number
+        )
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.post("/verify-code", response_model=UserResponse)
+async def verify_code_and_register(
+    request: VerifyCodeRequest,
+    db: Session = Depends(get_db)
+) -> Any:
+    """
+    Проверка SMS-кода и завершение регистрации
+    
+    Принимает JSON:
+    {
+      "phone_number": "+996555123456",
+      "code": "123456",
+      "password": "secure_password",
+      "first_name": "Иван",
+      "last_name": "Иванов"
+    }
+    """
+    try:
+        verified_user = await AuthService.verify_code_and_register(
+            db=db,
+            phone_number=request.phone_number,
+            code=request.code,
+            password=request.password,
+            first_name=request.first_name,
+            last_name=request.last_name,
+            city_id=request.city_id,
+            referral_code=request.referral_code
+        )
+        
+        return UserResponse(
+            id=verified_user.id,
+            phone_number=verified_user.phone,
+            first_name=verified_user.first_name,
+            last_name=verified_user.last_name,
+            email=verified_user.email,
+            city_id=verified_user.city_id,
+            referral_code=verified_user.referral_code,
+            created_at=verified_user.created_at
+        )
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))

@@ -1,6 +1,11 @@
+<<<<<<< HEAD
 import json
 import os
 from fastapi import FastAPI, Request
+=======
+import warnings
+from fastapi import FastAPI
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
@@ -13,6 +18,39 @@ from app.core.rate_limit import RateLimitMiddleware
 from app.api.v1.api_router import api_router
 
 
+<<<<<<< HEAD
+=======
+def validate_startup_config():
+    """Валидация конфигурации при старте приложения."""
+    issues = []
+    
+    # Проверка секретных ключей
+    if not settings.SECRET_KEY or settings.SECRET_KEY in ["CHANGE_ME", "CHANGE_ME_GENERATE_STRONG_SECRET_KEY_MIN_32_CHARS"]:
+        issues.append("SECRET_KEY не установлен или использует значение по умолчанию")
+    
+    if not settings.JWT_SECRET_KEY or settings.JWT_SECRET_KEY in ["CHANGE_ME", "CHANGE_ME_GENERATE_STRONG_JWT_SECRET_KEY_MIN_32_CHARS"]:
+        issues.append("JWT_SECRET_KEY не установлен или использует значение по умолчанию")
+    
+    # Проверка CORS для production
+    if not settings.DEBUG and settings.CORS_ORIGINS == ["*"]:
+        issues.append("CORS_ORIGINS установлен на '*' в production режиме - небезопасно!")
+    
+    # Вывод предупреждений
+    if issues:
+        warning_msg = "\n".join([f"  ⚠️  {issue}" for issue in issues])
+        warnings.warn(
+            f"\n{'='*60}\n"
+            f"⚠️  ПРЕДУПРЕЖДЕНИЯ БЕЗОПАСНОСТИ:\n"
+            f"{warning_msg}\n"
+            f"{'='*60}\n"
+            f"Для проверки конфигурации запустите: python scripts/check_config.py\n"
+            f"Подробнее: SECURITY.md\n",
+            UserWarning
+        )
+
+
+
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
 # Создание FastAPI приложения
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -41,6 +79,16 @@ if env != "production":
             f"http://127.0.0.1:{port}"
         ])
 
+<<<<<<< HEAD
+=======
+@app.on_event("startup")
+async def startup_event():
+    """События при старте приложения."""
+    validate_startup_config()
+
+
+# ---- CORS ----
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
 app.add_middleware(
     CORSMiddleware,
     allow_origins=extended_origins,  # Список разрешенных origins

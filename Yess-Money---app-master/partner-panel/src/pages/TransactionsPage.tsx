@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { useState } from 'react';
 import { Card, Table, Tag, Button, Space, Select, Input, DatePicker, Spin, message, Dropdown } from 'antd';
 import { PlusOutlined, DownloadOutlined, ExportOutlined } from '@ant-design/icons';
@@ -5,6 +6,11 @@ import { DeleteButton } from '../components/DeleteButton';
 import { useQuery } from '@tanstack/react-query';
 import { transactionsApi } from '../services/api';
 import { exportToCSV, exportToExcel, exportToJSON } from '../utils/exportUtils';
+=======
+import { Card, Table, Tag, Button, Space, Select, Input, DatePicker } from 'antd';
+import { PlusOutlined } from '@ant-design/icons';
+import { DeleteButton } from '../components/DeleteButton';
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
 import dayjs from 'dayjs';
 import 'dayjs/locale/ru';
 
@@ -59,6 +65,7 @@ const transactionsData = [
 ];
 
 export const TransactionsPage = () => {
+<<<<<<< HEAD
   const [dateRange, setDateRange] = useState<[dayjs.Dayjs, dayjs.Dayjs] | null>(null);
 
   // Загрузка транзакций из API
@@ -147,6 +154,8 @@ export const TransactionsPage = () => {
     { key: 'json', label: 'Экспорт в JSON', onClick: () => handleExport('json') },
   ];
 
+=======
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
   const columns = [
     {
       title: 'Дата',
@@ -190,7 +199,11 @@ export const TransactionsPage = () => {
               width: 32,
               height: 32,
               borderRadius: 4,
+<<<<<<< HEAD
               background: '#F0F7EB',
+=======
+              background: '#E3EED4',
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -212,7 +225,11 @@ export const TransactionsPage = () => {
       sorter: true,
       render: (amount: number) => (
         <span style={{ color: amount > 0 ? '#689071' : '#ff4d4f', fontWeight: 600 }}>
+<<<<<<< HEAD
           {amount > 0 ? '+' : ''}{amount.toLocaleString()} Yess!Coin
+=======
+          {amount > 0 ? '+' : ''}{amount.toLocaleString()} Y
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
         </span>
       ),
     },
@@ -222,7 +239,11 @@ export const TransactionsPage = () => {
       key: 'type',
       sorter: true,
       render: (type: string) => (
+<<<<<<< HEAD
         <Tag color={type === 'Начисление' ? 'green' : 'blue'}>{type}</Tag>
+=======
+        <Tag color={type === 'Начисление' ? 'green' : 'orange'}>{type}</Tag>
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
       ),
     },
     {
@@ -239,6 +260,7 @@ export const TransactionsPage = () => {
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+<<<<<<< HEAD
         <h1 style={{ fontSize: 32, fontWeight: 700, margin: 0, color: '#0F2A1D', background: 'linear-gradient(135deg, #0F2A1D 0%, #689071 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
           💳 Транзакции
         </h1>
@@ -260,21 +282,50 @@ export const TransactionsPage = () => {
             Экспорт
           </Button>
         </Dropdown>
+=======
+        <h1 style={{ fontSize: 32, fontWeight: 700, margin: 0, color: '#8B4513' }}>
+          💳 Транзакции
+        </h1>
+        <Button
+          type="primary"
+          icon={<PlusOutlined />}
+          style={{
+            background: 'linear-gradient(135deg, #F5A623 0%, #F7B731 100%)',
+            border: 'none',
+            borderRadius: 12,
+            height: 40,
+            fontWeight: 600,
+          }}
+        >
+          Скачать отчет
+        </Button>
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
       </div>
 
       <Card
         style={{
           borderRadius: 16,
+<<<<<<< HEAD
           background: 'linear-gradient(135deg, #ffffff 0%, #F0F7EB 100%)',
           border: '1px solid #E3EED4',
           marginBottom: 16,
           boxShadow: '0 2px 12px rgba(15, 42, 29, 0.08)',
+=======
+          background: 'linear-gradient(135deg, #ffffff 0%, #FFF4E6 100%)',
+          border: '1px solid #FFE6CC',
+          marginBottom: 16,
+          boxShadow: '0 2px 12px rgba(245, 166, 35, 0.08)',
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
         }}
       >
         <Space wrap style={{ width: '100%' }}>
           <RangePicker
+<<<<<<< HEAD
             value={dateRange}
             onChange={(dates) => setDateRange(dates as [dayjs.Dayjs, dayjs.Dayjs] | null)}
+=======
+            defaultValue={[dayjs('2025-11-01'), dayjs('2026-11-01')]}
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
             format="DD.MM.YYYY"
             style={{ borderRadius: 12 }}
           />
@@ -304,6 +355,7 @@ export const TransactionsPage = () => {
       <Card
         style={{
           borderRadius: 16,
+<<<<<<< HEAD
           background: 'linear-gradient(135deg, #ffffff 0%, #F0F7EB 100%)',
           border: '1px solid #E3EED4',
           boxShadow: '0 2px 12px rgba(15, 42, 29, 0.08)',
@@ -322,6 +374,19 @@ export const TransactionsPage = () => {
             loading={isLoading}
           />
         )}
+=======
+          background: 'linear-gradient(135deg, #ffffff 0%, #FFF4E6 100%)',
+          border: '1px solid #FFE6CC',
+          boxShadow: '0 2px 12px rgba(245, 166, 35, 0.08)',
+        }}
+      >
+        <Table
+          columns={columns}
+          dataSource={transactionsData}
+          pagination={{ pageSize: 10 }}
+          rowClassName={() => 'partner-table-row'}
+        />
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
       </Card>
 
       <style>{`
@@ -329,7 +394,11 @@ export const TransactionsPage = () => {
           transition: all 0.3s;
         }
         .partner-table-row:hover {
+<<<<<<< HEAD
           background-color: #F0F7EB !important;
+=======
+          background-color: #FFF4E6 !important;
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
         }
       `}</style>
     </div>

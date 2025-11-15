@@ -14,6 +14,7 @@ class SMSService:
     def __init__(self):
         self.enabled = settings.SMS_ENABLED
         self.client = None
+        self.verify_service_sid = settings.TWILIO_VERIFY_SERVICE_SID
         
         if self.enabled:
             try:
@@ -53,10 +54,125 @@ class SMSService:
             logger.error(f"Failed to send SMS to {phone}: {str(e)}")
             return False
     
-    async def send_verification_code(self, phone: str, code: str) -> bool:
-        """Отправка кода верификации"""
-        message = f"Ваш код подтверждения YESS: {code}. Не сообщайте его никому!"
-        return await self.send_sms(phone, message)
+    async def send_verification_code(self, phone: str, code: str = None) -> dict:
+        """
+        Отправка кода верификации через Twilio Verify API
+        phone: номер в формате +996XXXXXXXXX
+        code: опциональный код (если не указан, используется Twilio Verify API)
+        
+        Возвращает:
+        {
+            "success": True/False,
+            "sid": "verification_sid",
+            "status": "pending"
+        }
+        """
+        # Если используется Twilio Verify API и есть Service SID
+        if self.verify_service_sid and code is None:
+            return await self._send_verify_api(phone)
+        
+        # Если Verify Service SID не настроен, но SMS включен
+        if not self.verify_service_sid and self.enabled and code is None:
+            logger.error("TWILIO_VERIFY_SERVICE_SID not configured. Please set it in .env file")
+            return {
+                "success": False, 
+                "error": "TWILIO_VERIFY_SERVICE_SID не настроен. Установите его в .env файле"
+            }
+        
+        # Fallback: отправка через обычный SMS (для обратной совместимости)
+        if code:
+            message = f"Ваш код подтверждения YESS: {code}. Не сообщайте его никому!"
+            success = await self.send_sms(phone, message)
+            return {"success": success, "method": "sms"}
+        
+        return {"success": False, "error": "Code required for SMS method or TWILIO_VERIFY_SERVICE_SID not configured"}
+    
+    async def _send_verify_api(self, phone: str) -> dict:
+        """Отправка кода через Twilio Verify API"""
+        if not self.enabled:
+            logger.warning(f"SMS disabled. Would send verification to {phone}")
+            return {"success": False, "error": "SMS disabled"}
+        
+        if not self.verify_service_sid:
+            logger.error("TWILIO_VERIFY_SERVICE_SID not configured")
+            return {"success": False, "error": "Verify service not configured"}
+        
+        try:
+            # Форматируем номер для КР
+            if not phone.startswith('+'):
+                phone = f"+996{phone}"
+            
+            # Используем Twilio Verify API
+            verification = self.client.verify.v2.services(
+                self.verify_service_sid
+            ).verifications.create(
+                to=phone,
+                channel='sms'
+            )
+            
+            logger.info(f"Verification code sent. SID: {verification.sid}, Status: {verification.status}")
+            
+            # В DEBUG режиме логируем дополнительную информацию
+            if settings.DEBUG:
+                logger.warning(
+                    f"📱 SMS Verification sent to {phone}\n"
+                    f"   SID: {verification.sid}\n"
+                    f"   Status: {verification.status}\n"
+                    f"   ⚠️  В Trial режиме Twilio отправляет SMS только на верифицированный номер\n"
+                    f"   📲 Проверьте SMS на телефоне или Twilio Dashboard"
+                )
+            
+            return {
+                "success": True,
+                "sid": verification.sid,
+                "status": verification.status,
+                "method": "verify_api"
+            }
+            
+        except Exception as e:
+            logger.error(f"Failed to send verification code to {phone}: {str(e)}")
+            return {"success": False, "error": str(e)}
+    
+    async def verify_code(self, phone: str, code: str) -> dict:
+        """
+        Проверка кода верификации через Twilio Verify API
+        
+        Возвращает:
+        {
+            "success": True/False,
+            "status": "approved"/"pending"/"canceled",
+            "valid": True/False
+        }
+        """
+        if not self.enabled or not self.verify_service_sid:
+            return {"success": False, "valid": False, "error": "Service not configured"}
+        
+        try:
+            # Форматируем номер
+            if not phone.startswith('+'):
+                phone = f"+996{phone}"
+            
+            # Проверяем код через Verify API
+            verification_check = self.client.verify.v2.services(
+                self.verify_service_sid
+            ).verification_checks.create(
+                to=phone,
+                code=code
+            )
+            
+            is_valid = verification_check.status == "approved"
+            
+            logger.info(f"Verification check. Status: {verification_check.status}, Valid: {is_valid}")
+            
+            return {
+                "success": True,
+                "status": verification_check.status,
+                "valid": is_valid
+            }
+            
+        except Exception as e:
+            logger.error(f"Failed to verify code for {phone}: {str(e)}")
+            return {"success": False, "valid": False, "error": str(e)}
     
     async def send_transaction_notification(
         self, 

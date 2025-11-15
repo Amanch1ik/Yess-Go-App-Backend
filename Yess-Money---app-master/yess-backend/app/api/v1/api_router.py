@@ -12,6 +12,7 @@ from app.api.v1 import wallet
 from app.api.v1 import order
 from app.api.v1 import upload
 from app.api.v1 import qr
+from app.api.v1 import banner
 
 api_router = APIRouter()
 
@@ -53,6 +54,7 @@ except ImportError as e:
     logger.warning(f"webhooks router not available: {e}")
 api_router.include_router(upload.router, prefix="/upload", tags=["Upload"])
 api_router.include_router(qr.router, prefix="/qr", tags=["QR"])
+api_router.include_router(banner.router, prefix="/banners", tags=["Banners"])
 
 # Stories router (public)
 try:

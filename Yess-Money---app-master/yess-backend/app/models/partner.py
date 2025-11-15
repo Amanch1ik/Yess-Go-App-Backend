@@ -1,8 +1,17 @@
 """Partner models"""
-from sqlalchemy import Column, Integer, String, Text, Numeric, Boolean, DateTime, ForeignKey, Date, CheckConstraint, JSON, Float, func, Index
+from sqlalchemy import Column, Integer, String, Text, Numeric, Boolean, DateTime, ForeignKey, Date, CheckConstraint, JSON, Float, func, Index, Table
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from app.core.database import Base
+
+# Промежуточная таблица для связи многие-ко-многим между partners и categories
+partner_categories = Table(
+    'partner_categories',
+    Base.metadata,
+    Column('partner_id', Integer, ForeignKey('partners.id', ondelete='CASCADE'), primary_key=True),
+    Column('category_id', Integer, ForeignKey('categories.id', ondelete='CASCADE'), primary_key=True),
+    Index('idx_partner_category', 'partner_id', 'category_id')
+)
 
 # Geometry support - optional, requires geoalchemy2
 try:
@@ -19,7 +28,7 @@ class Partner(Base):
     # Основная информация
     name = Column(String(255), nullable=False)
     description = Column(Text)
-    category = Column(String(100), index=True)
+    # category удалено - теперь используется связь многие-ко-многим через categories
     city_id = Column(Integer, ForeignKey("cities.id"))
     
     # Изображения
@@ -64,7 +73,7 @@ class Partner(Base):
         CheckConstraint('cashback_rate >= 0 AND cashback_rate <= 100', name='check_cashback_range'),
         # Оптимизированные индексы
         Index('idx_partner_location', 'city_id', 'latitude', 'longitude'),
-        Index('idx_partner_status', 'is_active', 'is_verified', 'category'),
+        Index('idx_partner_status', 'is_active', 'is_verified'),
         Index('idx_partner_cashback', 'cashback_rate', 'is_active'),
         # GIST индекс для геопространственных запросов (создается через миграцию Alembic)
     )
@@ -78,6 +87,13 @@ class Partner(Base):
     products = relationship("PartnerProduct", back_populates="partner", cascade="all, delete-orphan")
     # agent_bonuses = relationship("AgentPartnerBonus", back_populates="partner")
     transactions = relationship("Transaction", back_populates="partner")
+    banners = relationship("Banner", back_populates="partner")  # Defined in banner.py
+    categories = relationship(
+        "Category",
+        secondary=partner_categories,
+        back_populates="partners",
+        lazy="selectin"  # Загружаем категории вместе с партнёром
+    )
 
 
 class PartnerLocation(Base):

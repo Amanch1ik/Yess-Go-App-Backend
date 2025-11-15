@@ -57,3 +57,24 @@ class RouteNavigationRequest(BaseModel):
     end_latitude: float = Field(..., ge=-90, le=90)
     end_longitude: float = Field(..., ge=-180, le=180)
     transport_mode: Optional[TransportMode] = TransportMode.DRIVING
+
+class DetailedRouteResponse(BaseModel):
+    """Детальный ответ с маршрутом"""
+    total_distance: str
+    estimated_time: str
+    distance_meters: Optional[int] = None
+    duration_seconds: Optional[int] = None
+    route_points: List[RoutePointResponse]
+    geometry: Optional[Dict] = None  # GeoJSON геометрия маршрута
+    steps: Optional[List[Dict]] = None  # Пошаговые инструкции
+    transport_type: Optional[str] = None  # Тип транспорта (для общественного)
+    alternatives: Optional[List[Dict]] = None  # Альтернативные маршруты
+
+class TransitRouteResponse(BaseModel):
+    """Маршрут на общественном транспорте"""
+    total_distance: str
+    estimated_time: str
+    transport_type: str  # bus, trolleybus, minibus
+    route_points: List[RoutePointResponse]
+    alternatives: List[Dict]  # Альтернативные варианты
+    instructions: List[Dict]  # Инструкции с пересадками

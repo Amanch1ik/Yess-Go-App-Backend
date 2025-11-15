@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { useState, lazy, Suspense } from 'react';
 import { Card, Table, Tag, Button, Form, Input, Switch, Space, Tooltip, Row, Col, Select, message, Spin, Dropdown } from 'antd';
 import { EditOutlined, PlusOutlined, SearchOutlined, ExportOutlined } from '@ant-design/icons';
@@ -31,16 +32,26 @@ interface Location {
 }
 
 const locationsData: Location[] = [
+=======
+import { Card, Table, Tag, Button, Form, Input, Switch, Space, Tooltip } from 'antd';
+import { EditOutlined, PlusOutlined } from '@ant-design/icons';
+import { DeleteButton } from '../components/DeleteButton';
+
+const locationsData = [
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
   {
     key: '1',
     id: 1,
     name: 'Yess!Go',
     address: 'г.Бишкек Чуйкова 169',
     status: 'open',
+<<<<<<< HEAD
     latitude: 42.8746,
     longitude: 74.5698,
     phone: '+996 555 123456',
     email: 'yessgo@example.com',
+=======
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
   },
   {
     key: '2',
@@ -48,10 +59,13 @@ const locationsData: Location[] = [
     name: 'Yess!Market',
     address: 'г.Бишкек Чуйкова 169',
     status: 'open',
+<<<<<<< HEAD
     latitude: 42.8846,
     longitude: 74.5798,
     phone: '+996 555 123457',
     email: 'yessmarket@example.com',
+=======
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
   },
   {
     key: '3',
@@ -59,14 +73,18 @@ const locationsData: Location[] = [
     name: 'Yess!Food',
     address: 'г.Бишкек Чуйкова 169',
     status: 'closed',
+<<<<<<< HEAD
     latitude: 42.8646,
     longitude: 74.5598,
     phone: '+996 555 123458',
     email: 'yessfood@example.com',
+=======
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
   },
 ];
 
 export const LocationsPage = () => {
+<<<<<<< HEAD
   const { t } = useTranslation();
   const [form] = Form.useForm();
   const [searchText, setSearchText] = useState('');
@@ -152,6 +170,9 @@ export const LocationsPage = () => {
       handleMarkerClick(location);
     }
   };
+=======
+  const [form] = Form.useForm();
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
 
   const columns = [
     {
@@ -161,6 +182,7 @@ export const LocationsPage = () => {
       render: (_: any, __: any, index: number) => index + 1,
     },
     {
+<<<<<<< HEAD
       title: t('locations.name', 'Название точки'),
       dataIndex: 'name',
       key: 'name',
@@ -168,23 +190,44 @@ export const LocationsPage = () => {
     },
     {
       title: t('locations.address', 'Адрес'),
+=======
+      title: 'Название точки',
+      dataIndex: 'name',
+      key: 'name',
+      render: (name: string) => <span style={{ fontWeight: 600, color: '#8B4513' }}>{name}</span>,
+    },
+    {
+      title: 'Адрес',
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
       dataIndex: 'address',
       key: 'address',
     },
     {
+<<<<<<< HEAD
       title: t('locations.status', 'Статус'),
+=======
+      title: 'Статус',
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
       dataIndex: 'status',
       key: 'status',
       render: (status: string) => (
         <Tag 
+<<<<<<< HEAD
           color={status === 'open' ? '#37946e' : 'default'}
           style={{ borderRadius: 12, padding: '4px 12px' }}
         >
           {status === 'open' ? t('locations.open', '🟢 Открыто') : t('locations.closed', '🔴 Закрыто')}
+=======
+          color={status === 'open' ? '#F5A623' : '#ccc'}
+          style={{ borderRadius: 12, padding: '4px 12px' }}
+        >
+          {status === 'open' ? '🟢 Открыто' : '🔴 Закрыто'}
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
         </Tag>
       ),
     },
     {
+<<<<<<< HEAD
       title: t('common.actions', 'Действие'),
       key: 'actions',
       width: 120,
@@ -211,12 +254,35 @@ export const LocationsPage = () => {
             confirmContent={t('common.deleteWarning', 'Это действие нельзя отменить')}
             confirmOkText={t('common.delete', 'Удалить')}
             confirmCancelText={t('common.cancel', 'Отменить')}
+=======
+      title: 'Действие',
+      key: 'actions',
+      width: 120,
+      render: (_: any, record: any) => (
+        <Space size="small">
+          <Tooltip title="Редактировать">
+            <Button 
+              type="text" 
+              icon={<EditOutlined />}
+              style={{ color: '#F5A623' }}
+            />
+          </Tooltip>
+          <DeleteButton
+            onDelete={() => console.log('Delete location', record.id)}
+            text=""
+            className="danger compact icon-only"
+            confirmTitle="Удалить локацию?"
+            confirmContent="Это действие нельзя отменить"
+            confirmOkText="Удалить"
+            confirmCancelText="Отменить"
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
           />
         </Space>
       ),
     },
   ];
 
+<<<<<<< HEAD
   // Экспорт данных
   const handleExport = (format: 'csv' | 'excel' | 'json' = 'csv') => {
     const dataToExport = filteredLocations.length > 0 ? filteredLocations : allLocations;
@@ -398,10 +464,24 @@ export const LocationsPage = () => {
       {/* Таблица локаций */}
       <Card
         title={<span style={{ color: '#217A44', fontSize: 16, fontWeight: 700 }}>📍 {t('locations.myLocations', 'Мои локации')}</span>}
+=======
+  return (
+    <div>
+      <h1 style={{ fontSize: 32, fontWeight: 700, marginBottom: 8, color: '#8B4513' }}>
+        🏪 Локации партнёра
+      </h1>
+      <p style={{ color: '#F5A623', marginBottom: 24 }}>
+        Управляйте информацией о вашем бизнесе и локациях
+      </p>
+
+      <Card
+        title={<span style={{ color: '#8B4513', fontSize: 16, fontWeight: 700 }}>📍 Мои локации</span>}
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
         extra={
           <Button 
             type="primary"
             icon={<PlusOutlined />}
+<<<<<<< HEAD
               onClick={() => {
                 setSelectedLocation(null);
                 form.resetFields();
@@ -422,10 +502,20 @@ export const LocationsPage = () => {
             }}
           >
             {t('locations.add', 'Добавить локацию')}
+=======
+            style={{
+              background: 'linear-gradient(135deg, #F5A623 0%, #F7B731 100%)',
+              border: 'none',
+              borderRadius: 12,
+            }}
+          >
+            Добавить локацию
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
           </Button>
         }
         style={{
           borderRadius: 16,
+<<<<<<< HEAD
           background: 'linear-gradient(135deg, #ffffff 0%, #e3eed4 100%)',
           border: '1px solid #bee3b6',
           marginBottom: 32,
@@ -463,24 +553,66 @@ export const LocationsPage = () => {
           <Form.Item label={t('locations.name', 'Название точки')} name="name" required>
             <Input 
               placeholder={t('locations.name', 'Название точки')} 
+=======
+          background: 'linear-gradient(135deg, #ffffff 0%, #FFF4E6 100%)',
+          border: '1px solid #FFE6CC',
+          marginBottom: 32,
+          boxShadow: '0 2px 12px rgba(245, 166, 35, 0.08)',
+        }}
+      >
+        <Table
+          columns={columns}
+          dataSource={locationsData}
+          pagination={{ pageSize: 10 }}
+          rowClassName={() => 'partner-table-row'}
+        />
+      </Card>
+
+      <Card
+        title={<span style={{ color: '#8B4513', fontSize: 16, fontWeight: 700 }}>➕ Добавить новую локацию</span>}
+        style={{
+          borderRadius: 16,
+          background: 'linear-gradient(135deg, #ffffff 0%, #FFF4E6 100%)',
+          border: '1px solid #FFE6CC',
+          boxShadow: '0 2px 12px rgba(245, 166, 35, 0.08)',
+        }}
+      >
+        <Form form={form} layout="vertical">
+          <Form.Item label="Название точки" name="name" required>
+            <Input 
+              placeholder="Название точки" 
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
               size="large"
               style={{ borderRadius: 12 }}
             />
           </Form.Item>
+<<<<<<< HEAD
           <Form.Item label={t('locations.city', 'Город')} name="city" required>
             <Input 
               placeholder={t('locations.city', 'Город')} 
+=======
+          <Form.Item label="Город" name="city" required>
+            <Input 
+              placeholder="Город" 
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
               size="large"
               style={{ borderRadius: 12 }}
             />
           </Form.Item>
+<<<<<<< HEAD
           <Form.Item label={t('locations.address', 'Адрес (улица, дом)')} name="address" required>
             <Input 
               placeholder={t('locations.address', 'Адрес (улица, дом)')} 
+=======
+          <Form.Item label="Адрес (улица, дом)" name="address" required>
+            <Input 
+              placeholder="Адрес (улица, дом)" 
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
               size="large"
               style={{ borderRadius: 12 }}
             />
           </Form.Item>
+<<<<<<< HEAD
           <Row gutter={16}>
             <Col xs={24} sm={12}>
               <Form.Item label={t('locations.latitude', 'Широта')} name="latitude">
@@ -506,10 +638,16 @@ export const LocationsPage = () => {
           <Form.Item label={t('profile.phone', 'Телефон')} name="phone" required>
             <Input 
               placeholder={t('profile.phone', 'Телефон')} 
+=======
+          <Form.Item label="Телефон" name="phone" required>
+            <Input 
+              placeholder="Телефон" 
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
               size="large"
               style={{ borderRadius: 12 }}
             />
           </Form.Item>
+<<<<<<< HEAD
           <Form.Item label={t('profile.email', 'Email')} name="email">
             <Input 
               placeholder={t('profile.email', 'Email')} 
@@ -521,6 +659,12 @@ export const LocationsPage = () => {
             <Switch 
               checkedChildren={t('locations.open', '🟢 Открыто')} 
               unCheckedChildren={t('locations.closed', '🔴 Закрыто')}
+=======
+          <Form.Item label="Статус" name="status" valuePropName="checked">
+            <Switch 
+              checkedChildren="🟢 Открыто" 
+              unCheckedChildren="🔴 Закрыто"
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
               defaultChecked
             />
           </Form.Item>
@@ -528,6 +672,7 @@ export const LocationsPage = () => {
             <Space size="middle" style={{ width: '100%', justifyContent: 'flex-end' }}>
               <Button 
                 size="large" 
+<<<<<<< HEAD
                 onClick={() => {
                   form.resetFields();
                 }}
@@ -537,10 +682,19 @@ export const LocationsPage = () => {
                 }}
               >
                 {t('common.cancel', 'Отмена')}
+=======
+                style={{ 
+                  borderRadius: 12,
+                  border: '1px solid #FFE6CC',
+                }}
+              >
+                Отмена
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
               </Button>
               <Button
                 type="primary"
                 size="large"
+<<<<<<< HEAD
                 loading={createOrUpdateMutation.isPending}
                 onClick={async () => {
                   try {
@@ -567,16 +721,30 @@ export const LocationsPage = () => {
                 }}
               >
                 ✅ {selectedLocation ? t('common.saveChanges', 'Сохранить изменения') : t('locations.save', 'Сохранить локацию')}
+=======
+                style={{
+                  background: 'linear-gradient(135deg, #F5A623 0%, #F7B731 100%)',
+                  border: 'none',
+                  borderRadius: 12,
+                }}
+              >
+                ✅ Сохранить локацию
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
               </Button>
             </Space>
           </Form.Item>
         </Form>
       </Card>
+<<<<<<< HEAD
+=======
+
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
       <style>{`
         .partner-table-row {
           transition: all 0.3s;
         }
         .partner-table-row:hover {
+<<<<<<< HEAD
           background-color: #e3eed4 !important;
           transform: scale(1.01);
         }
@@ -601,3 +769,12 @@ export const LocationsPage = () => {
     </motion.div>
   );
 };
+=======
+          background-color: #FFF4E6 !important;
+        }
+      `}</style>
+    </div>
+  );
+};
+
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932

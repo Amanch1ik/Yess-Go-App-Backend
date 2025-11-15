@@ -8,10 +8,20 @@ services:
     volumes:
       - ./yess-backend:/app
     environment:
+<<<<<<< HEAD
       - DATABASE_URL=${DATABASE_URL:-postgresql://yess_user:${POSTGRES_PASSWORD:-dev_password}@postgres:5432/yess_db}
       - ENVIRONMENT=${ENVIRONMENT:-development}
       - REDIS_URL=${REDIS_URL:-redis://redis:6379/0}
       - SECRET_KEY=${SECRET_KEY:-dev-secret-key-change-in-production}
+=======
+      - DATABASE_URL=postgresql://yess_user:password@postgres:5432/yess_db
+      - ENVIRONMENT=development
+      - REDIS_URL=redis://redis:6379/0
+      - SECRET_KEY=dev-secret-key-change-in-production
+      - DEBUG=True
+    env_file:
+      - ./yess-backend/.env
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
     depends_on:
       - postgres
       - redis

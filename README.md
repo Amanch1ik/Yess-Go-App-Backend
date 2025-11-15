@@ -1,11 +1,16 @@
-# 🌿 Yess! Loyalty - Backend API
+# 🎯 YESS!Partner - Система лояльности
 
 <div align="center">
 
-![Yess! Loyalty](Yess-Money---app-master/screenshots/logo.svg)
+![YESS!Partner](https://img.shields.io/badge/YESS!Partner-v1.0.0-green)
+![License](https://img.shields.io/badge/license-MIT-blue)
+![Python](https://img.shields.io/badge/Python-3.9+-blue)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-blue)
+![React](https://img.shields.io/badge/React-18.0+-blue)
 
-### 🚀 Высокопроизводительный бэкенд для системы лояльности с кэшбэком и бонусами
+**Современная система лояльности с админ-панелью и партнерской панелью**
 
+<<<<<<< HEAD
 [![Python](https://img.shields.io/badge/Python-3.9+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.95+-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-13+-336791?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
@@ -13,6 +18,9 @@
 [![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](LICENSE)
 
 [📚 Документация](#-документация) • [🚀 Быстрый старт](#-быстрый-старт) • [🔗 API](#-api) • [🏗️ Архитектура](#️-архитектура) • [🔌 Интеграция](#-подключение-admin-и-partner-панелей)
+=======
+[🚀 Быстрый старт](#-быстрый-старт) • [📚 Документация](#-документация) • [🏗️ Архитектура](#️-архитектура) • [🔧 Технологии](#-технологии)
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
 
 </div>
 
@@ -20,8 +28,9 @@
 
 ## 📋 О проекте
 
-**YESS Money Backend** - это оптимизированный бэкенд API для системы лояльности в Кыргызстане. Позволяет пользователям получать кэшбэк и бонусы за покупки у партнеров через мобильное приложение и веб-панель администратора.
+**YESS!Partner** — полнофункциональная система лояльности, включающая:
 
+<<<<<<< HEAD
 ### ✨ Основные возможности
 
 - 🎯 **Система лояльности** - Кэшбэк и бонусы за покупки
@@ -61,19 +70,31 @@
 - **Nginx** - reverse proxy
 
 ---
+=======
+- 🎨 **Админ-панель** — управление пользователями, партнерами, транзакциями
+- 🤝 **Партнерская панель** — управление локациями, акциями, сотрудниками
+- 💰 **Система начисления Yess!Coin** — виртуальная валюта для поощрения клиентов
+- 🏪 **Интеграция с партнерами** — управление акциями и промо-кампаниями
+- 📱 **Мобильное приложение** — .NET MAUI приложение для пользователей
+- 📊 **Экспорт данных** — CSV, Excel, JSON форматы для всех таблиц
+- 🔄 **Реал-тайм обновления** — WebSocket интеграция для live данных
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
 
 ## 🚀 Быстрый старт
 
-### Требования
+### Предварительные требования
 
-- Python 3.9+
-- PostgreSQL 13+
-- Redis 6+
-- Node.js 16+ (для админ-панели)
+- **Python 3.9+**
+- **Node.js 18+**
+- **PostgreSQL 14+**
+- **Redis 6+** (опционально, для кэширования)
 
-### Установка Backend
+### Установка и запуск
+
+#### 1. Клонирование репозитория
 
 ```bash
+<<<<<<< HEAD
 # Клонирование репозитория
 git clone https://github.com/Amanch1ik/Yess-Go-App-Backend.git
 cd Yess-Go-App-Backend
@@ -145,13 +166,70 @@ npm run dev
 📖 **Подробная документация:** См. [BACKEND_INTEGRATION.md](BACKEND_INTEGRATION.md) для детальной информации о подключении и API endpoints.
 
 ### Запуск админ-панели
+=======
+git clone https://github.com/Amanch1ik/PANEL-s_YESS-Go.git
+cd PANEL-s_YESS-Go
+```
+
+#### 2. Настройка Backend
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
 
 **Выберите одну из двух админ-панелей:**
 
 #### Вариант 1: React админ-панель (SPA)
 ```bash
+<<<<<<< HEAD
 cd admin-panel
+=======
+# Перейдите в директорию backend
+cd Yess-Money---app-master/yess-backend
+
+# Создайте виртуальное окружение
+python -m venv venv
+
+# Активируйте виртуальное окружение
+# Windows:
+.\venv\Scripts\Activate.ps1
+# Linux/Mac:
+source venv/bin/activate
+
+# Установите зависимости
+pip install -r requirements.txt
+
+# Создайте .env файл из примера
+copy env.example .env  # Windows
+# или
+cp env.example .env    # Linux/Mac
+
+# Настройте переменные окружения в .env
+# (DATABASE_URL, SECRET_KEY, и т.д.)
+
+# Примените миграции
+alembic upgrade head
+
+# Запустите сервер
+uvicorn app.main:app --reload --port 8000
+```
+
+**Backend будет доступен:**
+- API: `http://localhost:8000`
+- Swagger UI: `http://localhost:8000/docs`
+- ReDoc: `http://localhost:8000/redoc`
+
+#### 3. Настройка Admin Panel
+
+```bash
+# Перейдите в директорию admin-panel
+cd Yess-Money---app-master/admin-panel
+
+# Установите зависимости
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
 npm install
+
+# Создайте .env файл
+echo "VITE_API_URL=http://localhost:8000" > .env
+
+# Запустите dev сервер
 npm run dev
 ```
 Доступна на: `http://localhost:3001`
@@ -175,59 +253,187 @@ dotnet run
 
 **Примечание:** Обе админ-панели подключаются к одному бэкенду. ASP.NET версия полностью готова к использованию.
 
----
+**Admin Panel будет доступен:** `http://localhost:3001`
 
-## 🔗 API
+#### 4. Настройка Partner Panel
 
-### Base URL
-- **Development**: `http://localhost:8000`
-- **Production**: `https://api.yessloyalty.com`
+```bash
+# Перейдите в директорию partner-panel
+cd Yess-Money---app-master/partner-panel
 
-### Интерактивная документация
-После запуска доступна Swagger документация:
+# Установите зависимости
+npm install
+
+# Создайте .env файл
+echo "VITE_API_URL=http://localhost:8000" > .env
+
+# Запустите dev сервер
+npm run dev
+```
+
+**Partner Panel будет доступен:** `http://localhost:3002`
+
+### Использование скриптов (Windows PowerShell)
+
+Для быстрого запуска используйте готовые скрипты:
+
+```powershell
+# Запуск Backend
+.\Yess-Money---app-master\start_backend.ps1
+
+# Запуск Admin Panel
+.\Yess-Money---app-master\start_admin.ps1
+
+# Запуск Partner Panel
+.\Yess-Money---app-master\start_partner.ps1
+
+# Запуск всего сразу
+.\Yess-Money---app-master\start_all.ps1
+```
+
+## 🏗️ Архитектура
+
+```
+YESS!Partner/
+├── yess-backend/          # FastAPI Backend
+│   ├── app/               # Основное приложение
+│   │   ├── api/           # API endpoints
+│   │   ├── core/          # Конфигурация, безопасность
+│   │   ├── models/        # SQLAlchemy модели
+│   │   ├── schemas/       # Pydantic схемы
+│   │   └── services/      # Бизнес-логика
+│   ├── alembic/           # Миграции БД
+│   └── tests/             # Тесты
+│
+├── admin-panel/           # React + TypeScript Admin Panel
+│   ├── src/
+│   │   ├── components/    # React компоненты
+│   │   ├── pages/         # Страницы
+│   │   ├── services/      # API сервисы
+│   │   └── styles/        # Стили
+│
+├── partner-panel/         # React + TypeScript Partner Panel
+│   ├── src/
+│   │   ├── components/    # React компоненты
+│   │   ├── pages/         # Страницы
+│   │   ├── services/      # API сервисы
+│   │   └── styles/        # Стили
+│
+├── YessLoyaltyApp/        # .NET MAUI Mobile App
+│   ├── Services/           # Сервисы
+│   ├── ViewModels/        # MVVM ViewModels
+│   └── Views/             # XAML Views
+│
+├── k8s/                   # Kubernetes конфигурации
+├── monitoring/            # Prometheus & Grafana
+└── nginx/                 # Nginx конфигурации
+```
+
+## 🔧 Технологии
+
+### Backend
+- **FastAPI** — современный веб-фреймворк для Python
+- **SQLAlchemy** — ORM для работы с БД
+- **Alembic** — миграции БД
+- **PostgreSQL** — основная БД
+- **Redis** — кэширование и очереди
+- **JWT** — аутентификация
+- **Pydantic** — валидация данных
+
+### Frontend
+- **React 18** — UI библиотека
+- **TypeScript** — типизированный JavaScript
+- **Vite** — сборщик и dev-сервер
+- **Ant Design** — UI компоненты
+- **React Query** — управление состоянием и кэширование
+- **React Router** — маршрутизация
+
+### Mobile
+- **.NET MAUI** — кроссплатформенное мобильное приложение
+- **C#** — язык программирования
+
+### DevOps
+- **Docker** — контейнеризация
+- **Kubernetes** — оркестрация
+- **Prometheus** — мониторинг
+- **Grafana** — визуализация метрик
+- **Nginx** — reverse proxy
+
+## 📚 Документация
+
+### Командная работа
+
+- **[TEAM_COLLABORATION.md](./TEAM_COLLABORATION.md)** - Полное руководство по командной работе, Git workflow, разделение ответственности и примеры сценариев
+
+### API Документация
+
+После запуска backend доступна интерактивная документация:
+
 - **Swagger UI**: `http://localhost:8000/docs`
 - **ReDoc**: `http://localhost:8000/redoc`
 
-### Основные Endpoints
+### Основные API Endpoints
 
 #### Аутентификация
 ```http
-POST /api/v1/auth/register    # Регистрация
-POST /api/v1/auth/login       # Вход
+POST /api/v1/auth/login
+POST /api/v1/auth/register
 ```
 
 #### Пользователи
 ```http
-GET  /api/v1/users/me         # Профиль текущего пользователя
-PUT  /api/v1/users/me         # Обновление профиля
+GET /api/v1/users/me
+PUT /api/v1/users/me
 ```
 
 #### Партнеры
 ```http
-GET  /api/v1/partners                    # Список партнеров
-GET  /api/v1/partners/{id}                # Детали партнера
-GET  /api/v1/partners/nearby              # Партнеры рядом
+GET /api/v1/partners
+GET /api/v1/partners/{id}
+GET /api/v1/partners/nearby
 ```
 
 #### Транзакции
 ```http
-GET  /api/v1/transactions                 # История транзакций
-POST /api/v1/transactions                 # Создание транзакции
+GET /api/v1/transactions
+POST /api/v1/transactions
 ```
 
 #### Кошелек
 ```http
-GET  /api/v1/wallet                       # Информация о кошельке
-GET  /api/v1/wallet/balance                # Текущий баланс
-POST /api/v1/wallet/topup                 # Пополнение баланса
+GET /api/v1/wallet
+GET /api/v1/wallet/balance
+POST /api/v1/wallet/topup
 ```
 
-#### Заказы
-```http
-POST /api/v1/orders                       # Создание заказа
-GET  /api/v1/orders                       # Список заказов
+Полная документация доступна в Swagger UI.
+
+### Переменные окружения
+
+Создайте файл `.env` в `yess-backend/` на основе `env.example`:
+
+```env
+# Database
+DATABASE_URL=postgresql://user:password@localhost:5432/yess_db
+
+# Security
+SECRET_KEY=your-secret-key-here
+ACCESS_TOKEN_EXPIRE_MINUTES=30
+
+# Redis (optional)
+REDIS_URL=redis://localhost:6379
+
+# CORS
+CORS_ORIGINS=http://localhost:3001,http://localhost:3002
+
+# Email (optional)
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=your-email@gmail.com
+SMTP_PASSWORD=your-password
 ```
 
+<<<<<<< HEAD
 #### Уведомления
 ```http
 GET  /api/v1/notifications                # Список уведомлений
@@ -381,30 +587,32 @@ pytest tests/integration_tests.py -v
 # Нагрузочное тестирование
 cd tests
 locust -f load_testing.py --host=http://localhost:8000
-```
+=======
+## 🧪 Тестирование
 
----
+### Backend тесты
 
-## 📊 Мониторинг
-
-### Health Checks
 ```bash
-curl http://localhost:8000/health
-curl http://localhost:8000/health/db
-curl http://localhost:8000/health/cache
+cd yess-backend
+pytest tests/
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
 ```
 
-### Метрики
-API автоматически добавляет заголовки:
-- `X-Process-Time` - время выполнения запроса
-- `X-Request-ID` - уникальный идентификатор запроса
+### Frontend тесты
 
----
+```bash
+cd admin-panel
+npm test
+
+cd partner-panel
+npm test
+```
 
 ## 🚢 Деплой
 
 ### Docker
 
+<<<<<<< HEAD
 **Важно:** Перед запуском создайте файл `.env` в корне проекта:
 
 ```bash
@@ -415,49 +623,57 @@ cp .env.example .env
 
 Затем запустите:
 ```bash
+=======
+```bash
+# Сборка образов
+docker-compose build
+
+# Запуск
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
 docker-compose up -d
 ```
 
 ### Kubernetes
-Конфигурации в папке `k8s/`:
-- API Gateway
-- PostgreSQL StatefulSet
-- Redis Cluster
-- Production Deployment
 
----
+```bash
+# Применение конфигураций
+kubectl apply -f k8s/
+```
 
-## 🤝 Участие в разработке
+## 📊 Мониторинг
+
+- **Prometheus**: `http://localhost:9090`
+- **Grafana**: `http://localhost:3000`
+- **Health Check**: `http://localhost:8000/health`
+
+## 🤝 Вклад в проект
 
 1. Fork проекта
-2. Создайте feature ветку (`git checkout -b feature/AmazingFeature`)
-3. Закоммитьте изменения (`git commit -m 'Add some AmazingFeature'`)
-4. Push в ветку (`git push origin feature/AmazingFeature`)
+2. Создайте feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit изменения (`git commit -m 'Add some AmazingFeature'`)
+4. Push в branch (`git push origin feature/AmazingFeature`)
 5. Откройте Pull Request
 
-Подробнее в [CONTRIBUTING.md](CONTRIBUTING.md)
+## 📝 Лицензия
 
----
+Этот проект лицензирован под MIT License - см. файл [LICENSE](LICENSE) для деталей.
 
-## 📄 Лицензия
+## 👥 Авторы
 
-Этот проект распространяется под лицензией MIT. См. файл [LICENSE](LICENSE) для подробностей.
+- **Amanch1ik** - [GitHub](https://github.com/Amanch1ik)
 
----
+## 🙏 Благодарности
 
-## 📞 Контакты
-
-- **Репозиторий**: [https://github.com/Amanch1ik/Yess-Go-App-Backend](https://github.com/Amanch1ik/Yess-Go-App-Backend)
-- **Issues**: [https://github.com/Amanch1ik/Yess-Go-App-Backend/issues](https://github.com/Amanch1ik/Yess-Go-App-Backend/issues)
-- **Email**: aman4ikaitbekov@icloud.com
+- FastAPI сообществу
+- React сообществу
+- Всем контрибьюторам проекта
 
 ---
 
 <div align="center">
 
-**Сделано с ❤️ для Кыргызстана** 🇰🇬
+**Сделано с ❤️ для YESS!Partner**
 
-⭐ Поставьте звезду, если проект был полезен!
+⭐ Если проект был полезен, поставьте звезду!
 
 </div>
-

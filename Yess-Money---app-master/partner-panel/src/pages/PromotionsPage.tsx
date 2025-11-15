@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { useState } from 'react';
 import { Card, Table, Button, Tag, Avatar, Space, Modal, Form, Input, InputNumber, DatePicker, message, Spin, Dropdown } from 'antd';
 import { PlusOutlined, ShopOutlined, EditOutlined, ExportOutlined } from '@ant-design/icons';
@@ -9,6 +10,11 @@ import { useTranslation } from '@/hooks/useTranslation';
 import { motion } from 'framer-motion';
 import { queryKeys } from '@/config/queryClient';
 import dayjs from 'dayjs';
+=======
+import { Card, Table, Button, Tag, Avatar, Space } from 'antd';
+import { PlusOutlined, ShopOutlined, EditOutlined } from '@ant-design/icons';
+import { DeleteButton } from '../components/DeleteButton';
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
 
 const promotionsData = [
   {
@@ -24,6 +30,7 @@ const promotionsData = [
   },
 ];
 
+<<<<<<< HEAD
 const { RangePicker } = DatePicker;
 
 export const PromotionsPage = () => {
@@ -113,6 +120,12 @@ export const PromotionsPage = () => {
   const columns = [
     {
       title: t('promotions.titleField', 'Название'),
+=======
+export const PromotionsPage = () => {
+  const columns = [
+    {
+      title: 'Название',
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
       key: 'title',
       render: (_: any, record: any) => (
         <Space>
@@ -120,7 +133,11 @@ export const PromotionsPage = () => {
             style={{
               width: 40,
               height: 40,
+<<<<<<< HEAD
               background: 'linear-gradient(135deg, #217A44 0%, #37946e 50%, #bee3b6 100%)',
+=======
+              background: '#ff4d4f',
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
               borderRadius: 4,
               display: 'flex',
               flexDirection: 'column',
@@ -132,28 +149,49 @@ export const PromotionsPage = () => {
             }}
           >
             <span>-{record.discount}%</span>
+<<<<<<< HEAD
             <span style={{ fontSize: 10 }}>{t('promotions.discount', 'скидка')}</span>
           </div>
           <div>
             <div style={{ fontWeight: 500, color: '#37946e' }}>{record.title}</div>
             <div style={{ fontSize: 12, color: '#217A44' }}>
               -{record.discount}% {t('promotions.discount', 'скидка')}
+=======
+            <span style={{ fontSize: 10 }}>скидка</span>
+          </div>
+          <div>
+            <div style={{ fontWeight: 500, color: '#0F2A1D' }}>{record.title}</div>
+            <div style={{ fontSize: 12, color: '#689071' }}>
+              -{record.discount}% скидка
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
             </div>
           </div>
         </Space>
       ),
     },
     {
+<<<<<<< HEAD
       title: t('promotions.period', 'Период'),
+=======
+      title: 'Период',
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
       dataIndex: 'period',
       key: 'period',
     },
     {
+<<<<<<< HEAD
       title: t('nav.partner', 'Партнер'),
       key: 'partner',
       render: (_: any, record: any) => (
         <Space>
           <Avatar icon={<ShopOutlined />} size="small" style={{ backgroundColor: '#217A44' }}>
+=======
+      title: 'Партнер',
+      key: 'partner',
+      render: (_: any, record: any) => (
+        <Space>
+          <Avatar icon={<ShopOutlined />} size="small" style={{ backgroundColor: '#689071' }}>
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
             G
           </Avatar>
           <span>{record.partner}</span>
@@ -161,7 +199,11 @@ export const PromotionsPage = () => {
       ),
     },
     {
+<<<<<<< HEAD
       title: t('promotions.priority', 'Приоритет'),
+=======
+      title: 'Приоритет',
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
       dataIndex: 'priority',
       key: 'priority',
     },
@@ -172,19 +214,28 @@ export const PromotionsPage = () => {
       render: (ctr: number) => `${ctr}%`,
     },
     {
+<<<<<<< HEAD
       title: t('promotions.stats', 'Статистика'),
+=======
+      title: 'Статистика',
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
       dataIndex: 'stats',
       key: 'stats',
       render: (stats: number) => `${stats}%`,
     },
     {
+<<<<<<< HEAD
       title: t('common.actions', 'Действие'),
+=======
+      title: 'Действие',
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
       key: 'actions',
       render: (_: any, record: any) => (
         <Space size="small">
           <Button
             type="text"
             icon={<EditOutlined />}
+<<<<<<< HEAD
             onClick={() => handleEdit(record)}
             style={{ color: '#217A44' }}
           />
@@ -196,12 +247,25 @@ export const PromotionsPage = () => {
             confirmContent={t('common.deleteWarning', 'Вы уверены, что хотите удалить эту акцию?')}
             confirmOkText={t('common.delete', 'Удалить')}
             confirmCancelText={t('common.cancel', 'Отменить')}
+=======
+            onClick={() => console.log('Edit promotion', record.id)}
+          />
+          <DeleteButton
+            onDelete={() => console.log('Delete promotion', record.id)}
+            text=""
+            className="danger compact icon-only"
+            confirmTitle="Удалить акцию?"
+            confirmContent="Вы уверены, что хотите удалить эту акцию?"
+            confirmOkText="Удалить"
+            confirmCancelText="Отменить"
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
           />
         </Space>
       ),
     },
   ];
 
+<<<<<<< HEAD
   // Экспорт данных
   const handleExport = (format: 'csv' | 'excel' | 'json' = 'csv') => {
     if (!allPromotions || allPromotions.length === 0) {
@@ -340,6 +404,44 @@ export const PromotionsPage = () => {
           </Form.Item>
         </Form>
       </Modal>
+=======
+  return (
+    <div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+        <h1 style={{ fontSize: 32, fontWeight: 700, margin: 0, color: '#8B4513' }}>
+          🎁 Акции и сторисы
+        </h1>
+        <Button
+          type="primary"
+          icon={<PlusOutlined />}
+          style={{
+            background: 'linear-gradient(135deg, #F5A623 0%, #F7B731 100%)',
+            border: 'none',
+            borderRadius: 12,
+            height: 40,
+            fontWeight: 600,
+          }}
+        >
+          + Создать акцию
+        </Button>
+      </div>
+
+      <Card
+        style={{
+          borderRadius: 16,
+          background: 'linear-gradient(135deg, #ffffff 0%, #FFF4E6 100%)',
+          border: '1px solid #FFE6CC',
+          boxShadow: '0 2px 12px rgba(245, 166, 35, 0.08)',
+        }}
+      >
+        <Table
+          columns={columns}
+          dataSource={promotionsData}
+          pagination={{ pageSize: 10 }}
+          rowClassName={() => 'partner-table-row'}
+        />
+      </Card>
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
 
       <style>{`
         .partner-table-row {
@@ -349,7 +451,11 @@ export const PromotionsPage = () => {
           background-color: #FFF4E6 !important;
         }
       `}</style>
+<<<<<<< HEAD
     </motion.div>
+=======
+    </div>
+>>>>>>> 4acdea9993d0ca7e5e7d144ac0920409bca2b932
   );
 };
 

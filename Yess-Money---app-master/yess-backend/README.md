@@ -123,6 +123,7 @@ http://localhost:8000/redoc
 | **[ARCHITECTURE.md](ARCHITECTURE.md)** | 🏗️ Архитектура системы со схемами |
 | **[CHANGELOG_AUTH.md](CHANGELOG_AUTH.md)** | 📝 Детальный changelog |
 | **[COMMANDS.txt](COMMANDS.txt)** | 💻 Быстрые команды для терминала |
+| **[CASHBACK_AND_DISCOUNT_SYSTEM.md](CASHBACK_AND_DISCOUNT_SYSTEM.md)** | 💰 **Система кэшбэка и скидок** - Бизнес-логика обмена скидок на Yess Coin |
 
 ### Swagger UI
 
