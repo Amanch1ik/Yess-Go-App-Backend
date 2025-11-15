@@ -1,8 +1,10 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Security.Cryptography;
 using System.Text;
 using Microsoft.Maui.Devices.Sensors;
+using Microsoft.Extensions.Configuration;
 using YessLoyaltyApp.Models;
 
 namespace YessLoyaltyApp.Services
@@ -38,18 +40,33 @@ namespace YessLoyaltyApp.Services
         private readonly IMonitoringService _monitoringService;
         private readonly IBiometricService _biometricService;
         private readonly ISecureStorageService _secureStorage;
+        private readonly IConfiguration _configuration;
         private readonly Location _lastKnownLocation;
-
-        private const string ENCRYPTION_KEY = "YessLoyaltySecureKey2023!@#";
+        private readonly string _encryptionKey;
 
         public AdvancedSecurityService(
             IMonitoringService monitoringService,
             IBiometricService biometricService,
-            ISecureStorageService secureStorage)
+            ISecureStorageService secureStorage,
+            IConfiguration configuration)
         {
             _monitoringService = monitoringService;
             _biometricService = biometricService;
             _secureStorage = secureStorage;
+            _configuration = configuration;
+            
+            // Получаем ключ шифрования из конфигурации или переменных окружения
+            _encryptionKey = _configuration["Security:EncryptionKey"] 
+                ?? Environment.GetEnvironmentVariable("YESS_ENCRYPTION_KEY")
+                ?? throw new InvalidOperationException(
+                    "EncryptionKey не настроен. Установите Security:EncryptionKey в appsettings.json " +
+                    "или переменную окружения YESS_ENCRYPTION_KEY");
+            
+            if (_encryptionKey.Length < 32)
+            {
+                throw new InvalidOperationException(
+                    "EncryptionKey должен быть минимум 32 символа для безопасности");
+            }
         }
 
         public async Task<bool> VerifyGeolocationAuthenticationAsync()
@@ -178,7 +195,7 @@ namespace YessLoyaltyApp.Services
             {
                 using (Aes aes = Aes.Create())
                 {
-                    aes.Key = Encoding.UTF8.GetBytes(ENCRYPTION_KEY.PadRight(32));
+                    aes.Key = Encoding.UTF8.GetBytes(_encryptionKey.PadRight(32).Substring(0, 32));
                     aes.IV = new byte[16];
 
                     using (var encryptor = aes.CreateEncryptor())
@@ -202,7 +219,7 @@ namespace YessLoyaltyApp.Services
             {
                 using (Aes aes = Aes.Create())
                 {
-                    aes.Key = Encoding.UTF8.GetBytes(ENCRYPTION_KEY.PadRight(32));
+                    aes.Key = Encoding.UTF8.GetBytes(_encryptionKey.PadRight(32).Substring(0, 32));
                     aes.IV = new byte[16];
 
                     var storedData = await _secureStorage.GetAsync("SensitiveData");

@@ -1,6 +1,8 @@
 """
-Нагрузочное тестирование с использованием Locust
+Нагрузочное тестирование с использованием Locust (базовая версия)
 Для запуска: locust -f tests/load_testing.py --host=http://localhost:8000
+
+Для тестирования 4000+ пользователей используйте: load_testing_4000_users.py
 """
 from locust import HttpUser, task, between, events
 import random

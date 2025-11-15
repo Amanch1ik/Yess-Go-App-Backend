@@ -1,3 +1,4 @@
+import os
 import pyotp
 from datetime import datetime, timedelta
 from typing import Optional, Dict, Any
@@ -13,9 +14,19 @@ from src.Admin.models import AdminUser, AuditLog
 class AdminSecurityManager:
     """Расширенный менеджер безопасности администраторов"""
     
-    SECRET_KEY = "super_secret_admin_security_key_2023!"
-    ALGORITHM = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES = 30
+    # Используем переменные окружения вместо хардкода
+    SECRET_KEY = os.getenv("ADMIN_SECRET_KEY") or os.getenv("SECRET_KEY") or os.getenv("JWT_SECRET_KEY")
+    ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
+    ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ADMIN_TOKEN_EXPIRE_MINUTES", "30"))
+    
+    @classmethod
+    def _validate_secret_key(cls):
+        """Проверка наличия секретного ключа"""
+        if not cls.SECRET_KEY or cls.SECRET_KEY in ["super_secret_admin_security_key_2023!", "CHANGE_ME", ""]:
+            raise ValueError(
+                "ADMIN_SECRET_KEY или SECRET_KEY не установлен в переменных окружения. "
+                "Установите безопасный секретный ключ в .env файле."
+            )
     
     pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
     oauth2_scheme = OAuth2PasswordBearer(tokenUrl="admin/login")
@@ -38,6 +49,7 @@ class AdminSecurityManager:
         expires_delta: Optional[timedelta] = None
     ) -> str:
         """Создание JWT токена с расширенной защитой"""
+        cls._validate_secret_key()
         to_encode = data.copy()
         
         if expires_delta:
@@ -56,6 +68,7 @@ class AdminSecurityManager:
     @classmethod
     def validate_token(cls, token: str) -> Dict[str, Any]:
         """Валидация токена с расширенной проверкой"""
+        cls._validate_secret_key()
         try:
             payload = jwt.decode(token, cls.SECRET_KEY, algorithms=[cls.ALGORITHM])
             return payload

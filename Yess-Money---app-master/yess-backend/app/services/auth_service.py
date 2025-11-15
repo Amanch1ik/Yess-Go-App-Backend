@@ -10,7 +10,7 @@ from fastapi.security import OAuth2PasswordBearer
 from app.core.config import settings
 from app.models.user import User
 from app.core.exceptions import AuthenticationException
-from app.core.database import SessionLocal
+from app.core.database import get_db
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -110,9 +110,13 @@ class AuthService:
         return new_user
 
 
-def get_current_user(token: str = Depends(oauth2_scheme)) -> User:
+def get_current_user(
+    token: str = Depends(oauth2_scheme),
+    db: Session = Depends(get_db)
+) -> User:
     """
     Extract and return the current authenticated user from JWT
+    Использует dependency injection для сессии БД вместо создания новой
     """
     try:
         payload = jwt.decode(
@@ -120,10 +124,15 @@ def get_current_user(token: str = Depends(oauth2_scheme)) -> User:
             settings.SECRET_KEY,
             algorithms=[settings.ALGORITHM]
         )
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Токен истек",
+        )
     except jwt.PyJWTError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Неверный или истекший токен",
+            detail="Неверный токен",
         )
 
     user_id = payload.get("sub")
@@ -134,14 +143,19 @@ def get_current_user(token: str = Depends(oauth2_scheme)) -> User:
             detail="Невалидный токен",
         )
 
-    db = SessionLocal()
+    # Используем переданную сессию вместо создания новой
     user = db.query(User).filter(User.id == int(user_id)).first()
-    db.close()
 
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Пользователь не найден",
+        )
+    
+    if not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Пользователь деактивирован",
         )
 
     return user

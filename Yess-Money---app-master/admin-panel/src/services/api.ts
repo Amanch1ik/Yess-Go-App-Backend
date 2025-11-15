@@ -1,137 +1,186 @@
+/**
+ * API Services - Главный экспортный файл для всех API сервисов
+ */
+
+import adminApi, {
+  type DashboardStats,
+  type User,
+  type Partner,
+  type Promotion,
+  type Transaction,
+  type Referral,
+  type AdminNotification,
+  type AuditLog,
+  type SettingsData,
+} from './adminApi';
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
-
-export const api = axios.create({
-  baseURL: API_BASE_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
-
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('admin_token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
-
-api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem('admin_token');
-      window.location.href = '/login';
-    }
-    return Promise.reject(error);
-  }
-);
-
+/**
+ * Auth API
+ */
 export const authApi = {
-  login: (email: string, password: string) =>
-    api.post('/api/v1/auth/login', { email, password }),
-
-  getCurrentUser: () =>
-    api.get('/api/v1/auth/me'),
+  login: (username: string, password: string) => adminApi.login(username, password),
+  logout: () => adminApi.logout(),
+  getCurrentAdmin: () => adminApi.getCurrentAdmin(),
 };
 
-export const usersApi = {
-  getAll: (params?: { page?: number; limit?: number; search?: string }) =>
-    api.get('/api/v1/users', { params }),
-
-  getById: (id: number) =>
-    api.get(`/api/v1/users/${id}`),
-
-  update: (id: number, data: any) =>
-    api.put(`/api/v1/users/${id}`, data),
-
-  block: (id: number) =>
-    api.post(`/api/v1/users/${id}/block`),
-
-  unblock: (id: number) =>
-    api.post(`/api/v1/users/${id}/unblock`),
+/**
+ * Dashboard API
+ */
+export const dashboardApi = {
+  getStats: () => adminApi.getDashboardStats(),
 };
 
-export const partnersApi = {
-  getAll: (params?: { page?: number; limit?: number; search?: string }) =>
-    api.get('/api/v1/partner', { params }),
-
-  getById: (id: number) =>
-    api.get(`/api/v1/partner/${id}`),
-
-  update: (id: number, data: any) =>
-    api.put(`/api/v1/partner/${id}`, data),
-
-  verify: (id: number) =>
-    api.post(`/api/v1/partner/${id}/verify`),
-};
-
-export const transactionsApi = {
-  getAll: (params?: { page?: number; limit?: number; type?: string; status?: string }) =>
-    api.get('/api/v1/transactions', { params }),
-
-  getById: (id: number) =>
-    api.get(`/api/v1/transactions/${id}`),
-};
-
-export const ordersApi = {
-  getAll: (params?: { page?: number; limit?: number }) =>
-    api.get('/api/v1/order', { params }),
-
-  getById: (id: number) =>
-    api.get(`/api/v1/order/${id}`),
-};
-
-export const notificationsApi = {
-  getAll: (params?: { page?: number; limit?: number }) =>
-    api.get('/api/v1/notifications', { params }),
-
-  send: (data: any) =>
-    api.post('/api/v1/notifications/send', data),
-
-  sendBulk: (data: any) =>
-    api.post('/api/v1/notifications/bulk', data),
-};
-
-export const achievementsApi = {
-  getAll: () =>
-    api.get('/api/v1/achievements'),
-
-  create: (data: any) =>
-    api.post('/api/v1/achievements', data),
-
-  update: (id: number, data: any) =>
-    api.put(`/api/v1/achievements/${id}`, data),
-
-  delete: (id: number) =>
-    api.delete(`/api/v1/achievements/${id}`),
-};
-
-export const promotionsApi = {
-  getAll: () =>
-    api.get('/api/v1/promotions'),
-
-  create: (data: any) =>
-    api.post('/api/v1/promotions', data),
-
-  update: (id: number, data: any) =>
-    api.put(`/api/v1/promotions/${id}`, data),
-
-  delete: (id: number) =>
-    api.delete(`/api/v1/promotions/${id}`),
-};
-
+/**
+ * Analytics API (старый формат для совместимости)
+ */
 export const analyticsApi = {
-  getDashboardStats: () =>
-    api.get('/api/v1/analytics/dashboard'),
-
-  getUsersGrowth: (period: string) =>
-    api.get('/api/v1/analytics/users/growth', { params: { period } }),
-
-  getRevenue: (period: string) =>
-    api.get('/api/v1/analytics/revenue', { params: { period } }),
-
-  getTopPartners: (limit: number = 10) =>
-    api.get('/api/v1/analytics/partners/top', { params: { limit } }),
+  getDashboardStats: () => adminApi.getDashboardStats(),
 };
+
+/**
+ * Users API
+ */
+export const usersApi = {
+  getAll: (page?: number, page_size?: number, search?: string) => adminApi.getUsers(page, page_size, search),
+  getById: (id: number) => adminApi.getUserById(id),
+  update: (id: number, data: Partial<User>) => adminApi.updateUser(id, data),
+  delete: (id: number) => adminApi.deleteUser(id),
+  activate: (id: number) => adminApi.activateUser(id),
+  deactivate: (id: number) => adminApi.deactivateUser(id),
+};
+
+/**
+ * Partners API
+ */
+export const partnersApi = {
+  getAll: (page?: number, page_size?: number) => adminApi.getPartners(page, page_size),
+  getById: (id: number) => adminApi.getPartnerById(id),
+  create: (data: Partial<Partner>) => adminApi.createPartner(data),
+  update: (id: number, data: Partial<Partner>) => adminApi.updatePartner(id, data),
+  delete: (id: number) => adminApi.deletePartner(id),
+  approve: (id: number) => adminApi.approvePartner(id),
+  reject: (id: number, reason?: string) => adminApi.rejectPartner(id, reason),
+};
+
+/**
+ * Promotions API
+ */
+export const promotionsApi = {
+  getAll: (page?: number, page_size?: number) => adminApi.getPromotions(page, page_size),
+  getById: (id: number) => adminApi.getPromotionById(id),
+  create: (data: Partial<Promotion>) => adminApi.createPromotion(data),
+  update: (id: number, data: Partial<Promotion>) => adminApi.updatePromotion(id, data),
+  delete: (id: number) => adminApi.deletePromotion(id),
+};
+
+/**
+ * Transactions API
+ */
+export const transactionsApi = {
+  getAll: (page?: number, page_size?: number) => adminApi.getTransactions(page, page_size),
+  getById: (id: number) => adminApi.getTransactionById(id),
+};
+
+/**
+ * Referrals API
+ */
+export const referralsApi = {
+  getAll: () => adminApi.getReferrals(),
+  getStats: () => adminApi.getReferralsStats(),
+};
+
+/**
+ * Notifications API
+ */
+export const notificationsApi = {
+  getAll: (page?: number, page_size?: number) => adminApi.getNotifications(page, page_size),
+  send: (data: { title: string; message: string; segment: string; scheduled_for?: string }) =>
+    adminApi.sendNotification(data),
+  update: (id: number, data: Partial<AdminNotification>) => adminApi.updateNotification(id, data),
+  delete: (id: number) => adminApi.deleteNotification(id),
+};
+
+/**
+ * Audit API
+ */
+export const auditApi = {
+  getLogs: (page?: number, page_size?: number) => adminApi.getAuditLogs(page, page_size),
+  getSessions: () => adminApi.getAuditSessions(),
+};
+
+/**
+ * Settings API
+ */
+export const settingsApi = {
+  getAll: () => adminApi.getSettings(),
+  update: (data: Partial<SettingsData>) => adminApi.updateSettings(data),
+  categories: {
+    getAll: () => adminApi.getCategories(),
+    create: (data: { name: string }) => adminApi.createCategory(data),
+    update: (id: number, data: { name: string }) => adminApi.updateCategory(id, data),
+    delete: (id: number) => adminApi.deleteCategory(id),
+  },
+  cities: {
+    getAll: () => adminApi.getCities(),
+    create: (data: { name: string; country?: string }) => adminApi.createCity(data),
+    update: (id: number, data: { name: string }) => adminApi.updateCity(id, data),
+    delete: (id: number) => adminApi.deleteCity(id),
+  },
+  limits: {
+    getAll: () => adminApi.getLimits(),
+    update: (data: Record<string, any>) => adminApi.updateLimits(data),
+  },
+  apiKeys: {
+    getAll: () => adminApi.getApiKeys(),
+    create: (data: { name: string }) => adminApi.createApiKey(data),
+    revoke: (id: number) => adminApi.revokeApiKey(id),
+  },
+};
+
+// Экспорт типов для использования в компонентах
+export type {
+  DashboardStats,
+  User,
+  Partner,
+  Promotion,
+  Transaction,
+  Referral,
+  AdminNotification,
+  AuditLog,
+  SettingsData,
+};
+
+// Экспорт основного adminApi для прямого использования если нужно
+export { adminApi };
+
+// Default export для совместимости
+const api = {
+  authApi,
+  dashboardApi,
+  analyticsApi,
+  usersApi,
+  partnersApi,
+  promotionsApi,
+  transactionsApi,
+  referralsApi,
+  notificationsApi,
+  auditApi,
+  settingsApi,
+  // Прямой доступ к axios для кастомных запросов
+  post: (url: string, data?: any, config?: any) => {
+    const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+    const token = localStorage.getItem('admin_token');
+    return axios.post(`${API_BASE_URL}/api/v1${url}`, data, {
+      ...config,
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: token ? `Bearer ${token}` : undefined,
+        ...config?.headers,
+      },
+    });
+  },
+};
+
+export { api };
+export default api;

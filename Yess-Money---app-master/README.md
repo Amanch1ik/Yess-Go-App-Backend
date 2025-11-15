@@ -1,496 +1,366 @@
-# YESS Money - API Документация для фронтенда
+# 🎯 YESS!Partner - Система лояльности
 
-## Быстрый старт
+<div align="center">
 
-### Запуск бэкенда
+![YESS!Partner](https://img.shields.io/badge/YESS!Partner-v1.0.0-green)
+![License](https://img.shields.io/badge/license-MIT-blue)
+![Python](https://img.shields.io/badge/Python-3.9+-blue)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-blue)
+![React](https://img.shields.io/badge/React-18.0+-blue)
+
+**Современная система лояльности с админ-панелью и партнерской панелью**
+
+[🚀 Быстрый старт](#-быстрый-старт) • [📚 Документация](#-документация) • [🏗️ Архитектура](#️-архитектура) • [🔧 Технологии](#-технологии)
+
+</div>
+
+---
+
+## 📋 О проекте
+
+**YESS!Partner** — полнофункциональная система лояльности, включающая:
+
+- 🎨 **Админ-панель** — управление пользователями, партнерами, транзакциями
+- 🤝 **Партнерская панель** — управление локациями, акциями, сотрудниками
+- 💰 **Система начисления Yess!Coin** — виртуальная валюта для поощрения клиентов
+- 🏪 **Интеграция с партнерами** — управление акциями и промо-кампаниями
+- 📱 **Мобильное приложение** — .NET MAUI приложение для пользователей
+- 📊 **Экспорт данных** — CSV, Excel, JSON форматы для всех таблиц
+- 🔄 **Реал-тайм обновления** — WebSocket интеграция для live данных
+
+## 🚀 Быстрый старт
+
+> **💡 НОВОЕ:** Используйте автоматические скрипты для быстрой настройки!
+> 
+> ```powershell
+> .\setup_env.ps1      # Настройка окружения
+> .\start_all.ps1      # Запуск всех сервисов
+> ```
+> 
+> См. **[README_QUICK.md](README_QUICK.md)** для быстрого старта за 3 команды.
+
+### Предварительные требования
+
+- **Python 3.9+**
+- **Node.js 18+**
+- **PostgreSQL 14+**
+- **Redis 6+** (опционально, для кэширования)
+
+### Установка и запуск
+
+#### 1. Клонирование репозитория
+
 ```bash
-cd yess-backend
-pip install -r requirements.prod.txt
-cp env.example .env
-# Настроить .env (DATABASE_URL, REDIS_URL)
+git clone https://github.com/Amanch1ik/PANEL-s_YESS-Go.git
+cd PANEL-s_YESS-Go
+```
+
+#### 2. Настройка Backend
+
+```bash
+# Перейдите в директорию backend
+cd Yess-Money---app-master/yess-backend
+
+# Создайте виртуальное окружение
+python -m venv venv
+
+# Активируйте виртуальное окружение
+# Windows:
+.\venv\Scripts\Activate.ps1
+# Linux/Mac:
+source venv/bin/activate
+
+# Установите зависимости
+pip install -r requirements.txt
+
+# Создайте .env файл из примера
+copy env.example .env  # Windows
+# или
+cp env.example .env    # Linux/Mac
+
+# Настройте переменные окружения в .env
+# (DATABASE_URL, SECRET_KEY, и т.д.)
+
+# Примените миграции
 alembic upgrade head
-uvicorn app.main:app --reload
+
+# Запустите сервер
+uvicorn app.main:app --reload --port 8000
 ```
 
-**API будет доступен:** `http://localhost:8000`  
-**Swagger UI:** `http://localhost:8000/docs`
+**Backend будет доступен:**
+- API: `http://localhost:8000`
+- Swagger UI: `http://localhost:8000/docs`
+- ReDoc: `http://localhost:8000/redoc`
 
----
+#### 3. Настройка Admin Panel
 
-## Base URL
+```bash
+# Перейдите в директорию admin-panel
+cd Yess-Money---app-master/admin-panel
 
-- Development: `http://localhost:8000`
-- Production: `https://api.yessloyalty.com`
+# Установите зависимости
+npm install
 
----
+# Создайте .env файл
+echo "VITE_API_URL=http://localhost:8000" > .env
 
-## Аутентификация
-
-Все защищенные эндпоинты требуют JWT токен:
-```
-Authorization: Bearer {access_token}
-```
-
-### Регистрация
-```http
-POST /api/v1/auth/register
-Content-Type: application/json
-
-{
-  "phone": "+996700000001",
-  "password": "password123",
-  "name": "Иван Иванов",
-  "email": "ivan@example.com"
-}
+# Запустите dev сервер
+npm run dev
 ```
 
-### Вход
+**Admin Panel будет доступен:** `http://localhost:3001`
+
+#### 4. Настройка Partner Panel
+
+```bash
+# Перейдите в директорию partner-panel
+cd Yess-Money---app-master/partner-panel
+
+# Установите зависимости
+npm install
+
+# Создайте .env файл
+echo "VITE_API_URL=http://localhost:8000" > .env
+
+# Запустите dev сервер
+npm run dev
+```
+
+**Partner Panel будет доступен:** `http://localhost:3002`
+
+### Использование скриптов (Windows PowerShell)
+
+Для быстрого запуска используйте готовые скрипты:
+
+```powershell
+# Запуск Backend
+.\Yess-Money---app-master\start_backend.ps1
+
+# Запуск Admin Panel
+.\Yess-Money---app-master\start_admin.ps1
+
+# Запуск Partner Panel
+.\Yess-Money---app-master\start_partner.ps1
+
+# Запуск всего сразу
+.\Yess-Money---app-master\start_all.ps1
+```
+
+## 🏗️ Архитектура
+
+```
+YESS!Partner/
+├── yess-backend/          # FastAPI Backend
+│   ├── app/               # Основное приложение
+│   │   ├── api/           # API endpoints
+│   │   ├── core/          # Конфигурация, безопасность
+│   │   ├── models/        # SQLAlchemy модели
+│   │   ├── schemas/       # Pydantic схемы
+│   │   └── services/      # Бизнес-логика
+│   ├── alembic/           # Миграции БД
+│   └── tests/             # Тесты
+│
+├── admin-panel/           # React + TypeScript Admin Panel
+│   ├── src/
+│   │   ├── components/    # React компоненты
+│   │   ├── pages/         # Страницы
+│   │   ├── services/      # API сервисы
+│   │   └── styles/        # Стили
+│
+├── partner-panel/         # React + TypeScript Partner Panel
+│   ├── src/
+│   │   ├── components/    # React компоненты
+│   │   ├── pages/         # Страницы
+│   │   ├── services/      # API сервисы
+│   │   └── styles/        # Стили
+│
+├── YessLoyaltyApp/        # .NET MAUI Mobile App
+│   ├── Services/           # Сервисы
+│   ├── ViewModels/        # MVVM ViewModels
+│   └── Views/             # XAML Views
+│
+├── k8s/                   # Kubernetes конфигурации
+├── monitoring/            # Prometheus & Grafana
+└── nginx/                 # Nginx конфигурации
+```
+
+## 🔧 Технологии
+
+### Backend
+- **FastAPI** — современный веб-фреймворк для Python
+- **SQLAlchemy** — ORM для работы с БД
+- **Alembic** — миграции БД
+- **PostgreSQL** — основная БД
+- **Redis** — кэширование и очереди
+- **JWT** — аутентификация
+- **Pydantic** — валидация данных
+
+### Frontend
+- **React 18** — UI библиотека
+- **TypeScript** — типизированный JavaScript
+- **Vite** — сборщик и dev-сервер
+- **Ant Design** — UI компоненты
+- **React Query** — управление состоянием и кэширование
+- **React Router** — маршрутизация
+
+### Mobile
+- **.NET MAUI** — кроссплатформенное мобильное приложение
+- **C#** — язык программирования
+
+### DevOps
+- **Docker** — контейнеризация
+- **Kubernetes** — оркестрация
+- **Prometheus** — мониторинг
+- **Grafana** — визуализация метрик
+- **Nginx** — reverse proxy
+
+## 📚 Документация
+
+### Командная работа
+
+- **[TEAM_COLLABORATION.md](./TEAM_COLLABORATION.md)** - Полное руководство по командной работе, Git workflow, разделение ответственности и примеры сценариев
+
+### API Документация
+
+После запуска backend доступна интерактивная документация:
+
+- **Swagger UI**: `http://localhost:8000/docs`
+- **ReDoc**: `http://localhost:8000/redoc`
+
+### Основные API Endpoints
+
+#### Аутентификация
 ```http
 POST /api/v1/auth/login
-Content-Type: application/json
-
-{
-  "phone": "+996700000001",
-  "password": "password123"
-}
+POST /api/v1/auth/register
 ```
 
-**Ответ:**
-```json
-{
-  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-  "token_type": "bearer",
-  "user": {
-    "id": 1,
-    "phone": "+996700000001",
-    "name": "Иван Иванов"
-  }
-}
+#### Пользователи
+```http
+GET /api/v1/users/me
+PUT /api/v1/users/me
 ```
 
----
-
-## API Endpoints
-
-### Пользователи
-
-#### GET /api/v1/users/me
-Получить профиль текущего пользователя
-
-**Headers:** `Authorization: Bearer {token}`
-
-**Response:**
-```json
-{
-  "id": 1,
-  "phone": "+996700000001",
-  "name": "Иван Иванов",
-  "email": "ivan@example.com",
-  "balance": 1500.00,
-  "referral_code": "ABC123"
-}
+#### Партнеры
+```http
+GET /api/v1/partners
+GET /api/v1/partners/{id}
+GET /api/v1/partners/nearby
 ```
 
-#### PUT /api/v1/users/me
-Обновить профиль
-
-**Headers:** `Authorization: Bearer {token}`  
-**Body:**
-```json
-{
-  "name": "Иван Петров",
-  "email": "newemail@example.com"
-}
+#### Транзакции
+```http
+GET /api/v1/transactions
+POST /api/v1/transactions
 ```
 
----
-
-### Партнеры
-
-#### GET /api/v1/partners
-Список партнеров
-
-**Query Parameters:**
-- `category` (optional) - Фильтр по категории
-- `city_id` (optional) - Фильтр по городу
-- `limit` (optional, default: 20)
-- `offset` (optional, default: 0)
-
-**Response:**
-```json
-{
-  "items": [
-    {
-      "id": 1,
-      "name": "Кафе Центральное",
-      "category": "restaurant",
-      "cashback_rate": 5.0,
-      "logo_url": "https://...",
-      "latitude": 42.8746,
-      "longitude": 74.5698,
-      "is_verified": true
-    }
-  ],
-  "total": 100,
-  "limit": 20,
-  "offset": 0
-}
+#### Кошелек
+```http
+GET /api/v1/wallet
+GET /api/v1/wallet/balance
+POST /api/v1/wallet/topup
 ```
 
-#### GET /api/v1/partners/{id}
-Детали партнера
+Полная документация доступна в Swagger UI.
 
-**Response:**
-```json
-{
-  "id": 1,
-  "name": "Кафе Центральное",
-  "description": "Уютное кафе в центре города",
-  "category": "restaurant",
-  "cashback_rate": 5.0,
-  "phone": "+996700123456",
-  "address": "ул. Чуй, 123",
-  "latitude": 42.8746,
-  "longitude": 74.5698,
-  "working_hours": {
-    "mon": "09:00-22:00",
-    "tue": "09:00-22:00"
-  }
-}
+### Переменные окружения
+
+Создайте файл `.env` в `yess-backend/` на основе `env.example`:
+
+```env
+# Database
+DATABASE_URL=postgresql://user:password@localhost:5432/yess_db
+
+# Security
+SECRET_KEY=your-secret-key-here
+ACCESS_TOKEN_EXPIRE_MINUTES=30
+
+# Redis (optional)
+REDIS_URL=redis://localhost:6379
+
+# CORS
+CORS_ORIGINS=http://localhost:3001,http://localhost:3002
+
+# Email (optional)
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=your-email@gmail.com
+SMTP_PASSWORD=your-password
 ```
 
-#### GET /api/v1/partners/nearby
-Партнеры рядом
+## 🧪 Тестирование
 
-**Query Parameters:**
-- `latitude` (required)
-- `longitude` (required)
-- `radius` (optional, default: 5) - Радиус в км
-- `category` (optional)
-
-**Example:**
-```
-GET /api/v1/partners/nearby?latitude=42.8746&longitude=74.5698&radius=5
-```
-
-**Response:**
-```json
-{
-  "items": [
-    {
-      "id": 1,
-      "name": "Кафе Центральное",
-      "distance": 0.5,
-      "cashback_rate": 5.0
-    }
-  ],
-  "total": 15
-}
-```
-
----
-
-### Транзакции
-
-#### GET /api/v1/transactions
-История транзакций
-
-**Headers:** `Authorization: Bearer {token}`
-
-**Query Parameters:**
-- `type` (optional) - topup, discount, bonus, refund
-- `status` (optional) - pending, completed, failed
-- `limit` (optional, default: 20)
-- `offset` (optional, default: 0)
-
-**Response:**
-```json
-{
-  "items": [
-    {
-      "id": 1,
-      "type": "topup",
-      "amount": 1000.00,
-      "status": "completed",
-      "balance_before": 500.00,
-      "balance_after": 1500.00,
-      "created_at": "2024-01-01T12:00:00"
-    }
-  ],
-  "total": 50
-}
-```
-
-#### POST /api/v1/transactions
-Создать транзакцию (пополнение)
-
-**Headers:** `Authorization: Bearer {token}`  
-**Body:**
-```json
-{
-  "type": "topup",
-  "amount": 1000.00,
-  "payment_method": "optima"
-}
-```
-
-**Response:**
-```json
-{
-  "id": 1,
-  "type": "topup",
-  "amount": 1000.00,
-  "status": "pending",
-  "payment_url": "https://payment-gateway.com/pay/...",
-  "qr_code": "data:image/png;base64,..."
-}
-```
-
----
-
-### Кошелек
-
-#### GET /api/v1/wallet
-Информация о кошельке
-
-**Headers:** `Authorization: Bearer {token}`
-
-**Response:**
-```json
-{
-  "balance": 1500.00,
-  "currency": "KGS",
-  "total_earned": 5000.00,
-  "total_spent": 3500.00
-}
-```
-
-#### GET /api/v1/wallet/balance
-Текущий баланс
-
-**Headers:** `Authorization: Bearer {token}`
-
-**Response:**
-```json
-{
-  "balance": 1500.00,
-  "currency": "KGS"
-}
-```
-
-#### POST /api/v1/wallet/topup
-Пополнить баланс
-
-**Headers:** `Authorization: Bearer {token}`  
-**Body:**
-```json
-{
-  "amount": 1000.00,
-  "payment_method": "optima"
-}
-```
-
----
-
-### Заказы
-
-#### POST /api/v1/orders
-Создать заказ
-
-**Headers:** `Authorization: Bearer {token}`  
-**Body:**
-```json
-{
-  "partner_id": 1,
-  "order_total": 500.00,
-  "discount": 50.00
-}
-```
-
-**Response:**
-```json
-{
-  "id": 1,
-  "partner_id": 1,
-  "order_total": 500.00,
-  "discount": 50.00,
-  "final_amount": 450.00,
-  "cashback": 22.50,
-  "status": "completed"
-}
-```
-
-#### GET /api/v1/orders
-Список заказов
-
-**Headers:** `Authorization: Bearer {token}`
-
----
-
-### Уведомления
-
-#### GET /api/v1/notifications
-Список уведомлений
-
-**Headers:** `Authorization: Bearer {token}`
-
-**Query Parameters:**
-- `unread_only` (optional, default: false)
-- `limit` (optional, default: 20)
-
-**Response:**
-```json
-{
-  "items": [
-    {
-      "id": 1,
-      "title": "Новое предложение",
-      "message": "Получите 10% кэшбэк",
-      "type": "promotion",
-      "is_read": false,
-      "created_at": "2024-01-01T12:00:00"
-    }
-  ],
-  "unread_count": 5
-}
-```
-
-#### PUT /api/v1/notifications/{id}/read
-Отметить как прочитанное
-
----
-
-## Обработка ошибок
-
-### 400 Bad Request
-```json
-{
-  "error": "ValidationError",
-  "message": "Amount must be positive",
-  "details": {"amount": -10}
-}
-```
-
-### 401 Unauthorized
-```json
-{
-  "error": "UnauthorizedError",
-  "message": "Invalid or expired token"
-}
-```
-
-### 404 Not Found
-```json
-{
-  "error": "NotFoundError",
-  "message": "Partner not found"
-}
-```
-
-### 429 Too Many Requests
-```json
-{
-  "error": "rate_limit_exceeded",
-  "message": "Слишком много запросов",
-  "retry_after": 60
-}
-```
-
-### 503 Service Unavailable
-```json
-{
-  "error": "CircuitBreakerOpenError",
-  "message": "Circuit breaker is OPEN. Service unavailable. Retry after 45 seconds."
-}
-```
-
----
-
-## Пример использования (TypeScript)
-
-```typescript
-const API_URL = 'http://localhost:8000';
-
-class ApiClient {
-  private token: string | null = null;
-
-  async login(phone: string, password: string) {
-    const response = await fetch(`${API_URL}/api/v1/auth/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ phone, password })
-    });
-    
-    if (!response.ok) throw new Error('Login failed');
-    
-    const data = await response.json();
-    this.token = data.access_token;
-    return data;
-  }
-
-  async getPartners() {
-    const response = await fetch(`${API_URL}/api/v1/partners`, {
-      headers: {
-        'Authorization': `Bearer ${this.token}`
-      }
-    });
-    
-    if (!response.ok) throw new Error('Failed to fetch partners');
-    return response.json();
-  }
-
-  async getNearbyPartners(lat: number, lon: number, radius = 5) {
-    const url = `${API_URL}/api/v1/partners/nearby?latitude=${lat}&longitude=${lon}&radius=${radius}`;
-    const response = await fetch(url);
-    
-    if (!response.ok) throw new Error('Failed to fetch nearby partners');
-    return response.json();
-  }
-
-  async getUserProfile() {
-    const response = await fetch(`${API_URL}/api/v1/users/me`, {
-      headers: {
-        'Authorization': `Bearer ${this.token}`
-      }
-    });
-    
-    if (!response.ok) throw new Error('Failed to fetch profile');
-    return response.json();
-  }
-}
-
-// Использование
-const api = new ApiClient();
-await api.login('+996700000001', 'password123');
-const partners = await api.getPartners();
-```
-
----
-
-## Health Checks
+### Backend тесты
 
 ```bash
-GET /health          # Общая проверка
-GET /health/db       # База данных
-GET /health/cache    # Redis
+cd yess-backend
+pytest tests/
 ```
 
+### Frontend тесты
+
+```bash
+cd admin-panel
+npm test
+
+cd partner-panel
+npm test
+```
+
+## 🚢 Деплой
+
+### Docker
+
+```bash
+# Сборка образов
+docker-compose build
+
+# Запуск
+docker-compose up -d
+```
+
+### Kubernetes
+
+```bash
+# Применение конфигураций
+kubectl apply -f k8s/
+```
+
+## 📊 Мониторинг
+
+- **Prometheus**: `http://localhost:9090`
+- **Grafana**: `http://localhost:3000`
+- **Health Check**: `http://localhost:8000/health`
+
+## 🤝 Вклад в проект
+
+1. Fork проекта
+2. Создайте feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit изменения (`git commit -m 'Add some AmazingFeature'`)
+4. Push в branch (`git push origin feature/AmazingFeature`)
+5. Откройте Pull Request
+
+## 📝 Лицензия
+
+Этот проект лицензирован под MIT License - см. файл [LICENSE](LICENSE) для деталей.
+
+## 👥 Авторы
+
+- **Amanch1ik** - [GitHub](https://github.com/Amanch1ik)
+
+## 🙏 Благодарности
+
+- FastAPI сообществу
+- React сообществу
+- Всем контрибьюторам проекта
+
 ---
 
-## Заголовки ответов
+<div align="center">
 
-Все ответы содержат:
-- `X-Process-Time` - время выполнения запроса (секунды)
-- `X-Request-ID` - уникальный ID запроса
+**Сделано с ❤️ для YESS!Partner**
 
----
+⭐ Если проект был полезен, поставьте звезду!
 
-## Rate Limiting
-
-По умолчанию: **100 запросов в минуту** на IP адрес.
-
-При превышении возвращается **429** с заголовком `Retry-After`.
-
----
-
-**Полная интерактивная документация:** `http://localhost:8000/docs`
+</div>

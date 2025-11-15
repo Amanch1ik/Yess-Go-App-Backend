@@ -75,6 +75,7 @@ class Partner(Base):
     employees = relationship("PartnerEmployee", back_populates="partner")
     promotions = relationship("Promotion", back_populates="partner")  # Defined in promotion.py
     orders = relationship("Order", back_populates="partner")
+    products = relationship("PartnerProduct", back_populates="partner", cascade="all, delete-orphan")
     # agent_bonuses = relationship("AgentPartnerBonus", back_populates="partner")
     transactions = relationship("Transaction", back_populates="partner")
 

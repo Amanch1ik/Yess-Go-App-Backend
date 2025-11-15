@@ -1,7 +1,13 @@
 import os
 from functools import lru_cache
 from typing import Optional, Dict, Any, List
-from pydantic import BaseSettings, validator
+try:
+    from pydantic_settings import BaseSettings
+    from pydantic import ConfigDict
+    PYDANTIC_V2 = True
+except ImportError:
+    from pydantic import BaseSettings
+    PYDANTIC_V2 = False
 
 
 class Settings(BaseSettings):
@@ -9,27 +15,77 @@ class Settings(BaseSettings):
 
     # Application
     DEBUG: bool = False
+    DEVELOPMENT_MODE: bool = os.getenv("DEVELOPMENT_MODE", "true").lower() == "true"  # Режим разработки (без проверки пароля)
     HOST: str = "0.0.0.0"
     PORT: int = 8000
     BASE_URL: str = "http://localhost:8000"
     FRONTEND_URL: str = "http://localhost:3000"
 
     # Database
-    POSTGRES_HOST: str = "postgres"
-    POSTGRES_USER: str = "yess_user"
-    POSTGRES_PASSWORD: str = "password"
-    POSTGRES_DB: str = "yess_db"
+    POSTGRES_HOST: str = os.getenv("POSTGRES_HOST", "localhost")  # По умолчанию localhost для разработки
+    POSTGRES_USER: str = os.getenv("POSTGRES_USER", "yess_user")
+    POSTGRES_PASSWORD: str = os.getenv("POSTGRES_PASSWORD", "password")
+    POSTGRES_DB: str = os.getenv("POSTGRES_DB", "yess_db")
     SQLALCHEMY_DATABASE_URI: Optional[str] = None
     DATABASE_URL: Optional[str] = None  # Alternative database URL
 
-    @validator("SQLALCHEMY_DATABASE_URI", pre=True)
-    def assemble_db_connection(cls, v, values: Dict[str, Any]):
-        if v:
-            return v
-        return (
-            f"postgresql://{values['POSTGRES_USER']}:{values['POSTGRES_PASSWORD']}"
-            f"@{values['POSTGRES_HOST']}/{values['POSTGRES_DB']}"
-        )
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        # Автоматически собираем SQLALCHEMY_DATABASE_URI если не задан
+        if not self.SQLALCHEMY_DATABASE_URI and not self.DATABASE_URL:
+            # Если DATABASE_URL задан в env, используем его
+            if os.getenv("DATABASE_URL"):
+                self.DATABASE_URL = os.getenv("DATABASE_URL")
+                self.SQLALCHEMY_DATABASE_URI = self.DATABASE_URL
+            else:
+                self.SQLALCHEMY_DATABASE_URI = (
+                    f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}"
+                    f"@{self.POSTGRES_HOST}/{self.POSTGRES_DB}"
+                )
+        
+        # Валидация конфигурации для продакшена
+        self._validate_production_config()
+    
+    def _validate_production_config(self):
+        """Валидация критичных настроек для продакшена"""
+        env = os.getenv("APP_ENV", os.getenv("ENVIRONMENT", "development")).lower()
+        
+        if env == "production":
+            # Проверка SECRET_KEY
+            if not self.SECRET_KEY or self.SECRET_KEY in ["CHANGE_ME", "your-secret-key", ""]:
+                raise ValueError(
+                    "SECRET_KEY должен быть установлен в переменных окружения для продакшена. "
+                    "Используйте безопасный случайный ключ длиной минимум 32 символа."
+                )
+            
+            # Проверка JWT_SECRET_KEY
+            if not self.JWT_SECRET_KEY or self.JWT_SECRET_KEY in ["CHANGE_ME", "your-secret-key", ""]:
+                raise ValueError(
+                    "JWT_SECRET_KEY должен быть установлен в переменных окружения для продакшена."
+                )
+            
+            # Проверка DEBUG режима
+            if self.DEBUG or self.DEVELOPMENT_MODE:
+                import warnings
+                warnings.warn(
+                    "DEBUG или DEVELOPMENT_MODE включены в продакшене! Это небезопасно.",
+                    UserWarning
+                )
+            
+            # Проверка CORS
+            if "*" in self.CORS_ORIGINS:
+                raise ValueError(
+                    "CORS_ORIGINS не должен содержать '*' в продакшене. "
+                    "Укажите конкретные домены."
+                )
+            
+            # Проверка базы данных
+            if "localhost" in str(self.SQLALCHEMY_DATABASE_URI) or "127.0.0.1" in str(self.SQLALCHEMY_DATABASE_URI):
+                import warnings
+                warnings.warn(
+                    "Используется локальная база данных в продакшене. Проверьте DATABASE_URL.",
+                    UserWarning
+                )
 
     # Auth & JWT
     SECRET_KEY: str = os.getenv("SECRET_KEY", "CHANGE_ME")
@@ -40,8 +96,52 @@ class Settings(BaseSettings):
     REFRESH_TOKEN_EXPIRE_MINUTES: int = 10080  # 7 days in minutes
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
 
+    # Payment Webhook
+    PAYMENT_WEBHOOK_SECRET: str = os.getenv("PAYMENT_WEBHOOK_SECRET", "default_webhook_secret_change_me")
+    
     # CORS
-    CORS_ORIGINS: List[str] = ["http://localhost:3000", "http://localhost:8000"]
+    CORS_ORIGINS: List[str] = [
+        "http://localhost:3000",
+        "http://localhost:3001",  # Admin panel
+        "http://localhost:3002",  # Partner panel
+        "http://localhost:8000",
+        "http://127.0.0.1:3000",
+        "http://127.0.0.1:3001",  # Admin panel
+        "http://127.0.0.1:3002",  # Partner panel
+        "http://127.0.0.1:8000",
+    ]
+    
+    def get_cors_origins(self) -> List[str]:
+        """Получить CORS origins в зависимости от окружения"""
+        base_origins = self.CORS_ORIGINS.copy()
+        
+        # Проверяем переменную окружения для production origins
+        env = os.getenv("APP_ENV", os.getenv("ENVIRONMENT", "development")).lower()
+        
+        if env == "production":
+            # Добавить production origins из переменной окружения
+            prod_origins_str = os.getenv("CORS_ORIGINS", "")
+            if prod_origins_str:
+                import json
+                try:
+                    # Пробуем распарсить как JSON массив
+                    prod_list = json.loads(prod_origins_str)
+                    if isinstance(prod_list, list):
+                        base_origins.extend(prod_list)
+                except (json.JSONDecodeError, ValueError):
+                    # Если не JSON, пробуем как разделенный запятыми список
+                    prod_list = [origin.strip() for origin in prod_origins_str.split(",") if origin.strip()]
+                    base_origins.extend(prod_list)
+        
+        # Удаляем дубликаты, сохраняя порядок
+        seen = set()
+        unique_origins = []
+        for origin in base_origins:
+            if origin not in seen:
+                seen.add(origin)
+                unique_origins.append(origin)
+        
+        return unique_origins
 
     # Rate limiting
     RATE_LIMIT_ENABLED: bool = True
@@ -50,6 +150,7 @@ class Settings(BaseSettings):
 
     # Middleware & Monitoring
     ENABLE_PERFORMANCE_MONITORING: bool = False
+    LOG_LEVEL: str = "INFO"  # Logging level: DEBUG, INFO, WARNING, ERROR, CRITICAL
 
     # File Uploads & Storage
     UPLOAD_DIRECTORY: str = "/app/uploads"
@@ -119,9 +220,23 @@ class Settings(BaseSettings):
     ELCART_MERCHANT_ID: str = ""
     ELCART_SECRET_KEY: str = ""
 
+
+# Настройка конфигурации в зависимости от версии pydantic
+if PYDANTIC_V2:
+    Settings.model_config = ConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        case_sensitive=True,
+        extra="ignore",  # Игнорировать дополнительные поля из .env
+    )
+else:
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"
+        case_sensitive = True
+        extra = "ignore"  # Игнорировать дополнительные поля из .env
+    
+    Settings.Config = Config
 
 
 @lru_cache()

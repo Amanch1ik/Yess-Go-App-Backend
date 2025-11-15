@@ -1,0 +1,167 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  backend-tests:
+    name: Backend Tests
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:13
+        env:
+          POSTGRES_USER: yess_user
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_DB: yess_db_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+      
+      - name: Install dependencies
+        working-directory: Yess-Money---app-master/yess-backend
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
+      
+      - name: Run linters
+        working-directory: Yess-Money---app-master/yess-backend
+        run: |
+          flake8 app --count --select=E9,F63,F7,F82 --show-source --statistics
+          black --check app
+          mypy app --ignore-missing-imports || true
+      
+      - name: Run security checks
+        working-directory: Yess-Money---app-master/yess-backend
+        run: |
+          bandit -r app -f json -o bandit-report.json || true
+          safety check || true
+      
+      - name: Run tests
+        working-directory: Yess-Money---app-master/yess-backend
+        env:
+          DATABASE_URL: postgresql://yess_user:test_password@localhost:5432/yess_db_test
+          SECRET_KEY: test-secret-key-for-ci-only
+          JWT_SECRET_KEY: test-jwt-secret-key-for-ci-only
+          REDIS_URL: redis://localhost:6379/0
+          DEBUG: "False"
+          DEVELOPMENT_MODE: "False"
+        run: |
+          pytest tests/ -v --cov=app --cov-report=xml --cov-report=html
+      
+      - name: Upload coverage
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./Yess-Money---app-master/yess-backend/coverage.xml
+          flags: backend
+          name: backend-coverage
+
+  frontend-admin-tests:
+    name: Admin Panel Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: Yess-Money---app-master/admin-panel/package-lock.json
+      
+      - name: Install dependencies
+        working-directory: Yess-Money---app-master/admin-panel
+        run: npm ci
+      
+      - name: Run linter
+        working-directory: Yess-Money---app-master/admin-panel
+        run: npm run lint || true
+      
+      - name: Type check
+        working-directory: Yess-Money---app-master/admin-panel
+        run: npm run type-check
+      
+      - name: Build
+        working-directory: Yess-Money---app-master/admin-panel
+        run: npm run build
+
+  frontend-partner-tests:
+    name: Partner Panel Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: Yess-Money---app-master/partner-panel/package-lock.json
+      
+      - name: Install dependencies
+        working-directory: Yess-Money---app-master/partner-panel
+        run: npm ci
+      
+      - name: Run linter
+        working-directory: Yess-Money---app-master/partner-panel
+        run: npm run lint || true
+      
+      - name: Type check
+        working-directory: Yess-Money---app-master/partner-panel
+        run: npm run type-check
+      
+      - name: Build
+        working-directory: Yess-Money---app-master/partner-panel
+        run: npm run build
+
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+      
+      - name: Upload Trivy results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v2
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+

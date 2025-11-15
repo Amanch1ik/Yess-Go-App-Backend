@@ -1,7 +1,9 @@
 from fastapi import Request, HTTPException
 from starlette.middleware.base import BaseHTTPMiddleware
 import time
+import os
 from typing import Dict
+from app.core.config import settings
 
 class SecurityMiddleware(BaseHTTPMiddleware):
     def __init__(self, app):
@@ -9,6 +11,17 @@ class SecurityMiddleware(BaseHTTPMiddleware):
         self.ip_attempts: Dict[str, Dict] = {}
         self.max_attempts = 10  # Увеличено для разработки
         self.block_duration = 300  # 5 минут вместо 1 часа
+        
+        # Whitelist IP для разработки (localhost всегда разрешен)
+        self.whitelist_ips = [
+            "127.0.0.1",
+            "localhost",
+            "::1",
+            "0.0.0.0"
+        ]
+        
+        # В режиме разработки отключаем блокировку для localhost
+        self.development_mode = settings.DEVELOPMENT_MODE or os.getenv("ENVIRONMENT", "development") == "development"
         
         # Публичные пути, которые не должны блокироваться
         self.public_paths = [
@@ -21,14 +34,27 @@ class SecurityMiddleware(BaseHTTPMiddleware):
         ]
 
     async def dispatch(self, request: Request, call_next):
-        client_ip = request.client.host
+        client_ip = request.client.host if request.client else "127.0.0.1"
+        
+        # Пропускаем OPTIONS запросы (CORS preflight) - КРИТИЧНО для CORS
+        if request.method == "OPTIONS":
+            return await call_next(request)
         
         # Пропускаем публичные эндпоинты
         if any(request.url.path.startswith(path) for path in self.public_paths):
             return await call_next(request)
 
-        # Проверка блокировки IP
-        if self._is_ip_blocked(client_ip):
+        # В режиме разработки пропускаем localhost без проверки
+        # Также проверяем, что IP начинается с 127 или localhost
+        if self.development_mode:
+            if (client_ip in self.whitelist_ips or 
+                client_ip.startswith("127.") or 
+                client_ip.startswith("::1") or
+                "localhost" in str(client_ip).lower()):
+                return await call_next(request)
+
+        # Проверка блокировки IP (только в продакшене)
+        if not self.development_mode and self._is_ip_blocked(client_ip):
             raise HTTPException(status_code=403, detail="IP temporarily blocked")
 
         response = await call_next(request)

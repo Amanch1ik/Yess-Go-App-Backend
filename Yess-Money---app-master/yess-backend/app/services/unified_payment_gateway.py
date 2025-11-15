@@ -10,10 +10,10 @@ import asyncio
 import logging
 
 from sqlalchemy.orm import Session
-from ..models.transaction import Transaction
-from ..models.wallet import Wallet
-from ..core.database import get_db
-from ..schemas.payment import PaymentRequest, PaymentResponse
+from app.models.transaction import Transaction
+from app.models.wallet import Wallet
+from app.core.database import get_db
+from app.schemas.payment import PaymentRequest, PaymentResponse
 
 logger = logging.getLogger(__name__)
 
@@ -54,6 +54,78 @@ class UnifiedPaymentGateway:
             PaymentMethod.CASH_TERMINAL: 0.025,  # 2.5%
             PaymentMethod.BANK_TRANSFER: 0.01    # 1%
         }
+    
+    async def process_payment(
+        self,
+        user_id: int,
+        amount: float,
+        method: PaymentMethod,
+        db: Session,
+        order_id: Optional[int] = None,
+        description: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """Обработка платежа (для заказов или пополнения)"""
+        try:
+            # Валидация суммы
+            if amount <= 0:
+                raise ValueError("Сумма должна быть больше 0")
+            
+            if amount < 10:
+                raise ValueError("Минимальная сумма: 10 сом")
+            
+            # Расчет комиссии
+            commission = amount * self.commission_rates.get(method, 0.02)
+            total_amount = amount + commission
+            
+            # Создание транзакции
+            transaction = await self._create_transaction(
+                user_id, amount, method, commission, db, order_id
+            )
+            
+            # Обработка платежа в зависимости от метода
+            payment_result = await self._process_payment_by_method(
+                transaction, method
+            )
+            
+            if payment_result["status"] == "success":
+                # Обновление статуса транзакции
+                transaction.status = PaymentStatus.SUCCESS
+                transaction.processed_at = datetime.utcnow()
+                db.commit()
+                
+                # Если это оплата заказа, обновляем заказ
+                if order_id:
+                    from app.models.order import Order, OrderStatus
+                    order = db.query(Order).filter(Order.id == order_id).first()
+                    if order:
+                        order.status = OrderStatus.PAID
+                        order.payment_status = "paid"
+                        order.paid_at = datetime.utcnow()
+                        db.commit()
+                
+                return {
+                    "status": "success",
+                    "transaction_id": transaction.id,
+                    "redirect_url": payment_result.get("redirect_url"),
+                    "qr_code": payment_result.get("qr_code"),
+                    "commission": commission,
+                    "message": "Платеж успешно обработан"
+                }
+            else:
+                transaction.status = PaymentStatus.FAILED
+                transaction.error_message = payment_result.get("error", "Неизвестная ошибка")
+                db.commit()
+                
+                return {
+                    "status": "failed",
+                    "transaction_id": transaction.id,
+                    "error": payment_result.get("error", "Ошибка обработки платежа"),
+                    "commission": commission
+                }
+                
+        except Exception as e:
+            logger.error(f"Ошибка обработки платежа: {str(e)}")
+            raise
     
     async def process_replenishment(
         self, 
@@ -129,7 +201,8 @@ class UnifiedPaymentGateway:
         amount: float, 
         method: PaymentMethod,
         commission: float,
-        db: Session
+        db: Session,
+        order_id: Optional[int] = None
     ) -> Transaction:
         """Создание транзакции"""
         
@@ -138,9 +211,14 @@ class UnifiedPaymentGateway:
             amount=amount,
             commission=commission,
             payment_method=method.value,
+            type="payment" if order_id else "topup",
             status=PaymentStatus.PENDING.value,
             created_at=datetime.utcnow()
         )
+        
+        # Добавляем order_id если есть
+        if order_id:
+            transaction.order_id = order_id
         
         db.add(transaction)
         db.commit()
@@ -177,8 +255,12 @@ class UnifiedPaymentGateway:
             # Пока симулируем успешную обработку
             await asyncio.sleep(1)  # Имитация обработки
             
+            # Генерация redirect URL для страницы оплаты
+            redirect_url = f"https://payment-gateway.com/pay/{transaction.id}"
+            
             return {
                 "status": "success",
+                "redirect_url": redirect_url,
                 "gateway_response": {
                     "transaction_id": f"card_{transaction.id}",
                     "approval_code": "123456"
@@ -243,6 +325,7 @@ class UnifiedPaymentGateway:
             
             return {
                 "status": "success",
+                "qr_code": qr_data,
                 "gateway_response": {
                     "qr_code": qr_data,
                     "terminal_id": "T001",

@@ -8,35 +8,22 @@ services:
     volumes:
       - ./yess-backend:/app
     environment:
-      - DATABASE_URL=postgresql://yess_user:password@postgres:5432/yess_db
-      - ENVIRONMENT=development
-      - REDIS_URL=redis://redis:6379/0
-      - SECRET_KEY=dev-secret-key-change-in-production
+      - DATABASE_URL=${DATABASE_URL:-postgresql://yess_user:${POSTGRES_PASSWORD:-dev_password}@postgres:5432/yess_db}
+      - ENVIRONMENT=${ENVIRONMENT:-development}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379/0}
+      - SECRET_KEY=${SECRET_KEY:-dev-secret-key-change-in-production}
     depends_on:
       - postgres
       - redis
-
-  # frontend:
-  #   build: 
-  #     context: ./frontend
-  #     dockerfile: Dockerfile.dev
-  #   ports:
-  #     - "3000:3000"
-  #   volumes:
-  #     - ./frontend:/app
-  #     - /app/node_modules
-  #   environment:
-  #     - REACT_APP_API_URL=http://backend:8000/api
-  #     - CHOKIDAR_USEPOLLING=true
-  #   depends_on:
-  #     - backend
+    env_file:
+      - .env
 
   postgres:
     image: postgres:13
     environment:
-      - POSTGRES_DB=yess_db
-      - POSTGRES_USER=yess_user
-      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=${POSTGRES_DB:-yess_db}
+      - POSTGRES_USER=${POSTGRES_USER:-yess_user}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-dev_password}
     ports:
       - "5432:5432"
     volumes:
@@ -45,8 +32,8 @@ services:
   pgadmin:
     image: dpage/pgadmin4
     environment:
-      - PGADMIN_DEFAULT_EMAIL=admin@yessloyalty.com
-      - PGADMIN_DEFAULT_PASSWORD=admin
+      - PGADMIN_DEFAULT_EMAIL=${PGADMIN_EMAIL:-admin@yessloyalty.com}
+      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_PASSWORD:-admin}
     ports:
       - "5050:80"
     depends_on:

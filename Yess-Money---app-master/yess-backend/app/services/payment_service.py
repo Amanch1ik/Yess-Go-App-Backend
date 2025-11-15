@@ -11,6 +11,7 @@ from requests.exceptions import RequestException, Timeout, ConnectionError
 import logging
 from datetime import datetime
 from app.services.circuit_breaker import circuit_breaker, CircuitBreakerOpenError
+from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -49,50 +50,56 @@ class PaymentResponse:
 
 class PaymentService:
     def __init__(self):
+        # Используем настройки из config вместо хардкода
         self.payment_configs = {
             PaymentMethod.OPTIMA_BANK: {
-                "api_url": "https://api.optimabank.kg",
-                "merchant_id": "YESS_MERCHANT",
-                "api_key": "optima_api_key",
-                "secret_key": "optima_secret_key"
+                "api_url": getattr(settings, "OPTIMAL_BANK_API_URL", "https://api.optimabank.kg"),
+                "merchant_id": getattr(settings, "OPTIMAL_BANK_MERCHANT_ID", ""),
+                "api_key": getattr(settings, "OPTIMAL_BANK_API_KEY", ""),
+                "secret_key": getattr(settings, "OPTIMAL_BANK_SECRET_KEY", "")
             },
             PaymentMethod.DEMIR_BANK: {
-                "api_url": "https://api.demirbank.kg",
-                "merchant_id": "YESS_MERCHANT",
-                "api_key": "demir_api_key",
-                "secret_key": "demir_secret_key"
+                "api_url": getattr(settings, "DEMIR_BANK_API_URL", "https://api.demirbank.kg"),
+                "merchant_id": getattr(settings, "DEMIR_BANK_MERCHANT_ID", ""),
+                "api_key": getattr(settings, "DEMIR_BANK_API_KEY", ""),
+                "secret_key": getattr(settings, "DEMIR_BANK_SECRET_KEY", "")
             },
             PaymentMethod.BAKAI_BANK: {
-                "api_url": "https://api.bakaibank.kg",
-                "merchant_id": "YESS_MERCHANT",
-                "api_key": "bakai_api_key",
-                "secret_key": "bakai_secret_key"
+                "api_url": getattr(settings, "BAKAI_BANK_API_URL", "https://api.bakaibank.kg"),
+                "merchant_id": getattr(settings, "BAKAI_BANK_MERCHANT_ID", ""),
+                "api_key": getattr(settings, "BAKAI_BANK_API_KEY", ""),
+                "secret_key": getattr(settings, "BAKAI_BANK_SECRET_KEY", "")
             },
             PaymentMethod.MBANK: {
-                "api_url": "https://api.mbank.kg",
-                "merchant_id": "YESS_MERCHANT",
-                "api_key": "mbank_api_key",
-                "secret_key": "mbank_secret_key"
+                "api_url": getattr(settings, "MBANK_API_URL", "https://api.mbank.kg"),
+                "merchant_id": getattr(settings, "MBANK_MERCHANT_ID", ""),
+                "api_key": getattr(settings, "MBANK_API_KEY", ""),
+                "secret_key": getattr(settings, "MBANK_SECRET_KEY", "")
             },
             PaymentMethod.ELSOM: {
-                "api_url": "https://api.elsom.kg",
-                "merchant_id": "YESS_MERCHANT",
-                "api_key": "elsom_api_key",
-                "secret_key": "elsom_secret_key"
+                "api_url": getattr(settings, "ELSOM_API_URL", "https://api.elsom.kg"),
+                "merchant_id": getattr(settings, "ELSOM_MERCHANT_ID", ""),
+                "api_key": getattr(settings, "ELSOM_API_KEY", ""),
+                "secret_key": getattr(settings, "ELSOM_SECRET_KEY", "")
             },
             PaymentMethod.O_MONEY: {
-                "api_url": "https://api.o.kg",
-                "merchant_id": "YESS_MERCHANT",
-                "api_key": "o_money_api_key",
-                "secret_key": "o_money_secret_key"
+                "api_url": getattr(settings, "O_MONEY_API_URL", "https://api.o.kg"),
+                "merchant_id": getattr(settings, "O_MONEY_MERCHANT_ID", ""),
+                "api_key": getattr(settings, "O_MONEY_API_KEY", ""),
+                "secret_key": getattr(settings, "O_MONEY_SECRET_KEY", "")
             },
             PaymentMethod.MEGAPAY: {
-                "api_url": "https://api.megapay.kg",
-                "merchant_id": "YESS_MERCHANT",
-                "api_key": "megapay_api_key",
-                "secret_key": "megapay_secret_key"
+                "api_url": getattr(settings, "MEGAPAY_API_URL", "https://api.megapay.kg"),
+                "merchant_id": getattr(settings, "MEGAPAY_MERCHANT_ID", ""),
+                "api_key": getattr(settings, "MEGAPAY_API_KEY", ""),
+                "secret_key": getattr(settings, "MEGAPAY_SECRET_KEY", "")
             }
         }
+        
+        # Проверка наличия обязательных секретов
+        for method, config in self.payment_configs.items():
+            if not config.get("secret_key"):
+                logger.warning(f"Secret key not configured for {method.value}. Payment processing may fail.")
     
     def generate_payment_id(self, user_id: int, amount: float) -> str:
         """

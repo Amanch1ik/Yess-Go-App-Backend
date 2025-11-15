@@ -1,77 +1,282 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
+import { Button, Input, Form, message, Alert } from 'antd';
+import { UserOutlined, LockOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
-import { Form, Input, Button, Card, message } from 'antd';
-import { UserOutlined, LockOutlined } from '@ant-design/icons';
-import { authApi } from '@/services/api';
-import { useAuthStore } from '@/store/authStore';
+import { useAuth } from '@/hooks/useAuth';
+import { api } from '@/services/api';
+import { useTranslation } from '@/hooks/useTranslation';
+import './LoginPage.css';
 
 export const LoginPage = () => {
+  const { t } = useTranslation();
+  const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const navigate = useNavigate();
-  const setUser = useAuthStore((state) => state.setUser);
+  const { setUser } = useAuth();
+  const lastClickRef = useRef<number>(0);
 
-  const onFinish = async (values: { email: string; password: string }) => {
+  // Debounce для предотвращения double-click
+  const debounceClick = (callback: () => void, delay = 500) => {
+    const now = Date.now();
+    if (now - lastClickRef.current > delay) {
+      lastClickRef.current = now;
+      callback();
+    }
+  };
+
+  const onFinish = async (values: { username: string; password: string }) => {
+    debounceClick(async () => {
+      if (loading) return;
+      
+      setErrorMessage(null); // Очищаем предыдущие ошибки
     setLoading(true);
-    try {
-      const response = await authApi.login(values.email, values.password);
-      const { access_token, user } = response.data;
-
-      localStorage.setItem('admin_token', access_token);
-      setUser(user);
-
-      message.success('Вход выполнен успешно');
-      navigate('/');
-    } catch (error: any) {
-      message.error(error.response?.data?.message || 'Ошибка входа');
+      
+      try {
+        const response = await api.authApi.login(values.username, values.password);
+        
+        if (response && response.access_token) {
+          // Токен уже сохранен в adminApi.login()
+          setUser(response.admin || { 
+            id: '1',
+            email: values.username,
+            role: 'admin'
+          });
+          message.success(t('login.success', 'Успешный вход!'));
+          navigate('/');
+        } else {
+          setErrorMessage(t('login.invalidCredentials', 'Неверные учетные данные. Проверьте имя пользователя и пароль.'));
+          message.error(t('login.invalidCredentialsShort', 'Неверные учетные данные'));
+        }
+      } catch (error: any) {
+        console.error('Login error:', error);
+        
+        // Обработка различных типов ошибок
+        let errorText = t('login.error', 'Ошибка при входе. Попробуйте снова.');
+        
+        // Проверка на технические ошибки JavaScript
+        if (error?.message && (
+          error.message.includes('is not a function') ||
+          error.message.includes('Cannot read') ||
+          error.message.includes('undefined')
+        )) {
+          console.error('Technical error detected:', error);
+          errorText = t('login.technicalError', '⚠️ Произошла техническая ошибка. Пожалуйста, обновите страницу и попробуйте снова.');
+        } 
+        // Проверка на сетевые ошибки (когда нет response или status === 0)
+        else if (!error?.response || error.response?.status === 0) {
+          if (error?.message) {
+            if (error.message.includes('timeout') || error.code === 'ECONNABORTED') {
+              errorText = t('login.timeout', '⏱️ Превышено время ожидания. Интернет-соединение слишком медленное или нестабильное. Проверьте подключение и попробуйте снова.');
+            } else if (error.message.includes('Network Error') || error.message.includes('Failed to fetch')) {
+              errorText = t('login.noConnection', '🌐 Нет соединения с сервером. Убедитесь, что сервер запущен на http://localhost:8000 и попробуйте снова.');
+            } else {
+              // Если есть detail от интерсептора, используем его
+              const detail = error.response?.data?.detail;
+              if (detail) {
+                errorText = `🌐 ${detail}`;
+              } else {
+                errorText = t('login.connectionFailed', '🌐 Не удалось подключиться к серверу. Проверьте, что сервер запущен и попробуйте снова.');
+              }
+            }
+          } else {
+            errorText = t('login.connectionFailed', '🌐 Не удалось подключиться к серверу. Проверьте, что сервер запущен и попробуйте снова.');
+          }
+        } 
+        // Обработка HTTP ошибок (когда есть response с статусом)
+        else if (error?.response) {
+          const status = error.response.status;
+          const detail = error.response.data?.detail || '';
+          
+          switch (status) {
+            case 401:
+              errorText = t('login.invalidCredentials', '❌ Неверное имя пользователя или пароль. Проверьте правильность введенных данных и попробуйте снова.');
+              break;
+            case 403:
+              errorText = t('login.accessDenied', '🚫 Доступ запрещен. Ваш аккаунт может быть деактивирован. Обратитесь к администратору.');
+              break;
+            case 404:
+              errorText = t('login.userNotFound', '👤 Пользователь не найден. Проверьте правильность имени пользователя.');
+              break;
+            case 408:
+              errorText = t('login.serverTimeout', '⏱️ Превышено время ожидания ответа от сервера. Возможно, интернет-соединение слишком медленное. Проверьте подключение и попробуйте снова.');
+              break;
+            case 500:
+            case 502:
+            case 503:
+              errorText = t('login.serverError', '🔧 Ошибка сервера. Сервер временно недоступен. Попробуйте позже или свяжитесь с поддержкой.');
+              break;
+            default:
+              // Используем detail если есть, иначе общее сообщение
+              if (detail) {
+                errorText = detail;
+              } else {
+                errorText = t('login.errorWithStatus', 'Ошибка {status}. Попробуйте снова.', { status: String(status) });
+              }
+          }
+        } 
+        // Обработка других ошибок
+        else if (error?.message) {
+          if (error.message.includes('non ISO-8859-1') || error.message.includes('setRequestHeader')) {
+            errorText = t('login.encodingError', '🔤 Ошибка кодирования данных. Пожалуйста, очистите кеш браузера и войдите заново.');
+          } else {
+            errorText = t('login.generalError', '⚠️ Произошла ошибка при входе. Проверьте подключение к интернету и попробуйте снова.');
+          }
+        }
+        
+        setErrorMessage(errorText);
+        // Убираем эмодзи из toast сообщения
+        const toastMessage = errorText.replace(/[❌🚫👤⏱️🔧🌐🔤⚠️]/g, '').trim();
+        message.error(toastMessage || 'Ошибка при входе');
     } finally {
       setLoading(false);
+      }
+    });
+  };
+
+  const onFinishFailed = (errorInfo: any) => {
+    // Показываем ошибки валидации сразу
+    const firstError = errorInfo.errorFields?.[0];
+    if (firstError) {
+      const fieldName = firstError.name[0];
+      const errorMsg = firstError.errors[0];
+      
+      let errorText = '';
+      if (fieldName === 'username') {
+        errorText = `⚠️ Ошибка в поле "Имя пользователя": ${errorMsg}`;
+      } else if (fieldName === 'password') {
+        errorText = `⚠️ Ошибка в поле "Пароль": ${errorMsg}`;
+      } else {
+        errorText = `⚠️ ${errorMsg}`;
+      }
+      
+      setErrorMessage(errorText);
+      message.warning(errorText.replace(/[⚠️]/g, '').trim());
     }
   };
 
   return (
-    <div style={{
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-      minHeight: '100vh',
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-    }}>
-      <Card
-        style={{ width: 400, boxShadow: '0 8px 24px rgba(0,0,0,0.12)' }}
-        title={
-          <div style={{ textAlign: 'center', fontSize: 24, fontWeight: 'bold' }}>
-            YESS Admin Panel
+    <div className="login-container">
+      <div className="login-right">
+        <div className="login-form-container">
+          {/* Название приложения */}
+          <div className="login-logo">
+            <div className="login-logo-banner">
+              <h1>YESS!Admin</h1>
+            </div>
           </div>
-        }
-      >
+
+          <div className="login-header">
+            <h2>{t('login.title', 'Admin Panel Login')}</h2>
+            <p>{t('login.subtitle', 'Enter your credentials to access')}</p>
+          </div>
+
+          {errorMessage && (
+            <Alert
+              message={errorMessage}
+              type={errorMessage.includes('⚠️') ? 'warning' : 'error'}
+              icon={<ExclamationCircleOutlined />}
+              showIcon
+              closable
+              onClose={() => setErrorMessage(null)}
+              style={{ marginBottom: 24 }}
+              className="login-error-alert"
+              action={
+                errorMessage.includes('кодирования') || errorMessage.includes('кеш') ? (
+                  <Button
+                    size="small"
+                    onClick={() => {
+                      localStorage.clear();
+                      setErrorMessage(null);
+                      message.success(t('login.cacheCleared', 'Кеш очищен. Пожалуйста, войдите заново.'));
+                      form.resetFields();
+                    }}
+                  >
+                    {t('login.clearCache', 'Очистить кеш')}
+                  </Button>
+                ) : null
+              }
+            />
+          )}
+
         <Form
-          name="login"
+            form={form}
+            layout="vertical"
           onFinish={onFinish}
-          autoComplete="off"
-          layout="vertical"
+            onFinishFailed={onFinishFailed}
+            className="login-form"
+            validateTrigger={['onChange', 'onBlur', 'onSubmit']}
         >
           <Form.Item
-            name="email"
+            name="username"
+              label={
+                <>
+                  <span style={{ color: '#ff4d4f', marginRight: '4px' }}>*</span>
+                  {t('login.username', 'Username')}
+                </>
+              }
             rules={[
-              { required: true, message: 'Введите email' },
-              { type: 'email', message: 'Неверный формат email' },
-            ]}
+                { 
+                  required: true, 
+                  message: t('login.usernameRequired', 'Введите имя пользователя'),
+                  whitespace: true
+                },
+                { 
+                  min: 3, 
+                  message: t('login.usernameMinLength', 'Имя пользователя должно содержать минимум 3 символа')
+                },
+                {
+                  max: 50,
+                  message: t('login.usernameMaxLength', 'Имя пользователя не должно превышать 50 символов')
+                },
+                {
+                  pattern: /^[a-zA-Z0-9_@.-]+$/,
+                  message: t('login.usernamePattern', 'Имя пользователя может содержать только буквы, цифры и символы: _ @ . -')
+                }
+              ]}
+              hasFeedback
           >
             <Input
               prefix={<UserOutlined />}
-              placeholder="Email"
+                placeholder="admin"
               size="large"
+                className="login-input"
+                disabled={loading}
+                onFocus={() => setErrorMessage(null)}
             />
           </Form.Item>
 
           <Form.Item
             name="password"
-            rules={[{ required: true, message: 'Введите пароль' }]}
+              label={
+                <>
+                  <span style={{ color: '#ff4d4f', marginRight: '4px' }}>*</span>
+                  {t('login.password', 'Password')}
+                </>
+              }
+            rules={[
+                { 
+                  required: true, 
+                  message: t('login.passwordRequired', 'Введите пароль')
+                },
+                { 
+                  min: 6, 
+                  message: t('login.passwordMinLength', 'Пароль должен содержать минимум 6 символов')
+                },
+                {
+                  max: 128,
+                  message: t('login.passwordMaxLength', 'Пароль не должен превышать 128 символов')
+                }
+              ]}
+              hasFeedback
           >
             <Input.Password
               prefix={<LockOutlined />}
-              placeholder="Пароль"
+                placeholder="••••••••"
               size="large"
+                className="login-input"
+                disabled={loading}
+                onFocus={() => setErrorMessage(null)}
             />
           </Form.Item>
 
@@ -79,15 +284,29 @@ export const LoginPage = () => {
             <Button
               type="primary"
               htmlType="submit"
+                size="large"
               loading={loading}
+                className="login-button"
               block
-              size="large"
+                disabled={loading}
             >
-              Войти
+                {loading ? t('login.loggingIn', 'Вход в систему...') : t('login.login', 'Войти')}
             </Button>
           </Form.Item>
         </Form>
-      </Card>
+
+          <div className="login-demo">
+            <p>{t('login.demoTitle', 'For demo use:')}</p>
+            <div className="login-demo-field">{t('login.demoUsername', 'Username: admin')}</div>
+            <div className="login-demo-field">{t('login.demoPassword', 'Password: admin')}</div>
+          </div>
+        </div>
+
+        {/* Нижний текст */}
+        <p className="login-footer">
+          {t('login.footer', '© 2025 Yess Loyalty. Все права защищены.')}
+        </p>
+      </div>
     </div>
   );
 };

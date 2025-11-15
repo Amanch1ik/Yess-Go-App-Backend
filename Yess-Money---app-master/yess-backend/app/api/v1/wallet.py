@@ -7,12 +7,19 @@ from app.core.database import get_db
 from app.models.wallet import Wallet
 from app.models.transaction import Transaction
 from app.models.user import User
-from app.schemas.wallet import WalletResponse, TopUpRequest, TopUpResponse
+from app.schemas.wallet import (
+    WalletResponse, 
+    TopUpRequest, 
+    TopUpResponse,
+    WalletSyncRequest,
+    WalletSyncResponse
+)
 from app.core.config import settings
 import qrcode
 import io
 import base64
 from datetime import datetime
+from decimal import Decimal
 
 router = APIRouter()
 
@@ -24,6 +31,63 @@ async def get_balance(userId: int = Query(...), db: Session = Depends(get_db)):
     if not wallet:
         raise HTTPException(status_code=404, detail="Wallet not found")
     return wallet
+
+
+@router.get("/balance", response_model=WalletResponse)
+async def get_wallet_balance(
+    user_id: int = Query(..., description="User ID"),
+    db: Session = Depends(get_db)
+):
+    """Get wallet balance with Yess!Coin"""
+    wallet = db.query(Wallet).filter(Wallet.user_id == user_id).first()
+    if not wallet:
+        # Создаем кошелек если его нет
+        wallet = Wallet(
+            user_id=user_id,
+            balance=Decimal('0.00'),
+            yescoin_balance=Decimal('0.00'),
+            total_earned=Decimal('0.00'),
+            total_spent=Decimal('0.00')
+        )
+        db.add(wallet)
+        db.commit()
+        db.refresh(wallet)
+    return wallet
+
+
+@router.post("/sync", response_model=WalletSyncResponse)
+async def sync_wallet(
+    request: WalletSyncRequest,
+    db: Session = Depends(get_db)
+):
+    """
+    Синхронизация баланса кошелька между сайтом и приложением
+    Используется для обеспечения консистентности данных
+    """
+    wallet = db.query(Wallet).filter(Wallet.user_id == request.user_id).first()
+    if not wallet:
+        # Создаем кошелек если его нет
+        wallet = Wallet(
+            user_id=request.user_id,
+            balance=Decimal('0.00'),
+            yescoin_balance=Decimal('0.00'),
+            total_earned=Decimal('0.00'),
+            total_spent=Decimal('0.00')
+        )
+        db.add(wallet)
+        db.commit()
+        db.refresh(wallet)
+        has_changes = False
+    else:
+        # Проверяем, были ли изменения (можно добавить логику с timestamp)
+        has_changes = True  # Упрощенная версия, в реальности нужно сравнивать с последней синхронизацией
+    
+    return WalletSyncResponse(
+        success=True,
+        yescoin_balance=wallet.yescoin_balance,
+        last_updated=wallet.last_updated,
+        has_changes=has_changes
+    )
 
 
 @router.post("/topup", response_model=TopUpResponse)

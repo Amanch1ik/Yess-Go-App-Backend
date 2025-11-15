@@ -45,12 +45,28 @@ class RateLimitMiddleware:
     def __init__(self, app):
         self.app = app
 
+    def _is_excluded_path(self, path: str) -> bool:
+        """Пути, исключённые из rate limiting"""
+        excluded = [
+            "/docs",
+            "/redoc",
+            "/openapi.json",
+            "/health",
+            "/metrics"
+        ]
+        return any(path.startswith(p) for p in excluded)
+    
     async def __call__(self, scope, receive, send):
         if scope["type"] != "http":
             await self.app(scope, receive, send)
             return
 
         request = Request(scope, receive)
+        
+        # Пропускаем OPTIONS запросы (CORS preflight)
+        if request.method == "OPTIONS":
+            await self.app(scope, receive, send)
+            return
 
         # Пропускаем проверку для некоторых эндпоинтов
         if self._is_excluded_path(request.url.path):
@@ -70,17 +86,6 @@ class RateLimitMiddleware:
             return
 
         await self.app(scope, receive, send)
-
-    def _is_excluded_path(self, path: str) -> bool:
-        """Пути, исключённые из rate limiting"""
-        excluded = [
-            "/docs",
-            "/redoc",
-            "/openapi.json",
-            "/health",
-            "/metrics"
-        ]
-        return any(path.startswith(p) for p in excluded)
 
     async def _check_rate_limit(self, request: Request) -> bool:
         """Проверка лимита (упрощённая версия)"""

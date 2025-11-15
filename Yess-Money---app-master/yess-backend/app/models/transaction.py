@@ -11,8 +11,14 @@ class Transaction(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
     partner_id = Column(Integer, ForeignKey("partners.id"), nullable=True, index=True)  # Partner involved in transaction
-    type = Column(String(50), nullable=False, index=True)  # topup, discount, bonus, refund
+    order_id = Column(Integer, ForeignKey("orders.id"), nullable=True, index=True)  # Order for payment transactions
+    type = Column(String(50), nullable=False, index=True)  # topup, discount, bonus, refund, payment
     amount = Column(Numeric(10, 2), nullable=False)
+    commission = Column(Numeric(10, 2), default=0.0)  # Commission for payment
+    payment_method = Column(String(50), nullable=True)  # bank_card, elsom, etc.
+    gateway_transaction_id = Column(String(255), nullable=True)  # ID from payment gateway
+    error_message = Column(Text, nullable=True)  # Error message if failed
+    processed_at = Column(DateTime, nullable=True)  # When transaction was processed
     balance_before = Column(Numeric(10, 2))
     balance_after = Column(Numeric(10, 2))
     status = Column(String(50), nullable=False, index=True)  # pending, completed, failed
@@ -39,5 +45,6 @@ class Transaction(Base):
     # Relationships
     user = relationship("User", back_populates="transactions")
     partner = relationship("Partner", back_populates="transactions")
+    order = relationship("Order", foreign_keys=[order_id], uselist=False)
     refunds = relationship("Refund", back_populates="transaction")
 

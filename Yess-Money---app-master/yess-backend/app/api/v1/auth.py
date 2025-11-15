@@ -14,8 +14,14 @@ from app.services.auth_service import AuthService
 from app.services.dependencies import get_current_user
 from app.schemas.user import UserCreate, UserResponse, TokenResponse
 from app.models.user import User
+from pydantic import BaseModel
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
+
+
+class LoginRequest(BaseModel):
+    phone: str
+    password: str
 
 
 @router.post("/register", response_model=UserResponse)
@@ -66,7 +72,7 @@ def login_user(
     db: Session = Depends(get_db)
 ) -> Any:
     """
-    Аутентификация пользователя
+    Аутентификация пользователя (OAuth2 form-data)
     
     Использует OAuth2PasswordRequestForm (username = phone_number)
     Возвращает:
@@ -83,6 +89,62 @@ def login_user(
             db=db,
             phone_number=form_data.username,
             password=form_data.password
+        )
+
+        # Создаем access token
+        access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+        access_token = AuthService.create_access_token(
+            data={"sub": str(user.id)},
+            expires_delta=access_token_expires
+        )
+
+        return TokenResponse(
+            access_token=access_token,
+            token_type="bearer",
+            user_id=user.id,
+            user=UserResponse(
+                id=user.id,
+                phone_number=user.phone,
+                first_name=user.first_name or "",
+                last_name=user.last_name or "",
+                email=user.email,
+                city_id=user.city_id,
+                referral_code=user.referral_code,
+                created_at=user.created_at
+            )
+        )
+
+    except Exception as e:
+        raise HTTPException(status_code=401, detail=str(e))
+
+
+@router.post("/login/json", response_model=TokenResponse)
+def login_user_json(
+    login_data: LoginRequest,
+    db: Session = Depends(get_db)
+) -> Any:
+    """
+    Аутентификация пользователя (JSON)
+    
+    Принимает JSON:
+    {
+      "phone": "+996555123456",
+      "password": "password123"
+    }
+    
+    Возвращает:
+    {
+      "access_token": "...",
+      "token_type": "bearer",
+      "user_id": 1,
+      "user": {...}
+    }
+    """
+    try:
+        user = AuthService.authenticate_user(
+            db=db,
+            phone_number=login_data.phone,
+            password=login_data.password
         )
 
         # Создаем access token

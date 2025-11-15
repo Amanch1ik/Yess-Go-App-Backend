@@ -23,18 +23,20 @@ class PaymentStatus(str, Enum):
     CANCELLED = "cancelled"
 
 class PaymentRequest(BaseModel):
-    """Запрос на пополнение кошелька"""
-    amount: float = Field(..., gt=0, description="Сумма пополнения в сомах")
+    """Запрос на пополнение кошелька или оплату заказа"""
+    amount: float = Field(..., gt=0, description="Сумма в сомах")
     method: PaymentMethod = Field(..., description="Метод оплаты")
     phone_number: Optional[str] = Field(None, description="Номер телефона для мобильных платежей")
     card_token: Optional[str] = Field(None, description="Токен карты для банковских платежей")
+    order_id: Optional[int] = Field(None, description="ID заказа для оплаты")
+    description: Optional[str] = Field(None, description="Описание платежа")
     
     @validator('amount')
     def validate_amount(cls, v):
         if v < 10:
-            raise ValueError('Минимальная сумма пополнения: 10 сом')
+            raise ValueError('Минимальная сумма: 10 сом')
         if v > 100000:
-            raise ValueError('Максимальная сумма пополнения: 100,000 сом')
+            raise ValueError('Максимальная сумма: 100,000 сом')
         return v
     
     @validator('phone_number')
@@ -43,17 +45,34 @@ class PaymentRequest(BaseModel):
             raise ValueError('Номер телефона обязателен для мобильных платежей')
         return v
 
+
+class OrderPaymentRequest(BaseModel):
+    """Запрос на оплату заказа"""
+    order_id: int = Field(..., description="ID заказа")
+    method: PaymentMethod = Field(..., description="Метод оплаты")
+    phone_number: Optional[str] = Field(None, description="Номер телефона для мобильных платежей")
+    card_token: Optional[str] = Field(None, description="Токен карты для банковских платежей")
+    
+    @validator('phone_number')
+    def validate_phone(cls, v, values):
+        if values.get('method') in ['mobile_balance', 'elsom'] and not v:
+            raise ValueError('Номер телефона обязателен для мобильных платежей')
+        return v
+
 class PaymentResponse(BaseModel):
-    """Ответ на запрос пополнения"""
-    transaction_id: int
+    """Ответ на запрос пополнения или оплаты заказа"""
+    payment_id: Optional[int] = None
+    transaction_id: Optional[int] = None
+    order_id: Optional[int] = None
     status: str
     amount: float
     commission: float
     new_balance: Optional[float] = None
     message: Optional[str] = None
     error: Optional[str] = None
-    payment_url: Optional[str] = None
-    qr_code: Optional[str] = None
+    redirect_url: Optional[str] = None  # URL для редиректа на страницу оплаты
+    payment_url: Optional[str] = None  # Альтернативное название
+    qr_code: Optional[str] = None  # QR код для оплаты
     expires_at: Optional[datetime] = None
 
 class PaymentMethodInfo(BaseModel):

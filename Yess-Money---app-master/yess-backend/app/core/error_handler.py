@@ -7,7 +7,9 @@ from typing import Optional, Dict, Any
 from fastapi import Request, HTTPException
 from fastapi.responses import JSONResponse
 from starlette.status import HTTP_500_INTERNAL_SERVER_ERROR
+from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 from app.core.config import settings
+from app.core.exceptions import YESSBaseException
 
 logger = logging.getLogger(__name__)
 
@@ -130,10 +132,72 @@ async def general_exception_handler(request: Request, exc: Exception) -> JSONRes
         )
 
 
+async def yess_exception_handler(request: Request, exc: YESSBaseException) -> JSONResponse:
+    """Обработчик кастомных исключений YESS"""
+    logger.warning(
+        f"YESS exception: {exc.message}",
+        extra={
+            "status_code": exc.status_code,
+            "path": request.url.path,
+            "method": request.method,
+            "details": exc.details
+        }
+    )
+    
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={
+            "error": exc.__class__.__name__,
+            "message": exc.message,
+            "details": exc.details if settings.DEBUG else {}
+        }
+    )
+
+
+async def sqlalchemy_exception_handler(request: Request, exc: SQLAlchemyError) -> JSONResponse:
+    """Обработчик ошибок SQLAlchemy"""
+    logger.error(
+        f"Database error: {str(exc)}",
+        extra={
+            "path": request.url.path,
+            "method": request.method
+        },
+        exc_info=True
+    )
+    
+    if isinstance(exc, IntegrityError):
+        return JSONResponse(
+            status_code=400,
+            content={
+                "error": "IntegrityError",
+                "message": "Ошибка целостности данных. Возможно, запись уже существует.",
+                "details": {"original_error": str(exc)} if settings.DEBUG else {}
+            }
+        )
+    
+    return JSONResponse(
+        status_code=503,
+        content={
+            "error": "DatabaseError",
+            "message": "Ошибка базы данных. Попробуйте позже.",
+            "details": {"original_error": str(exc)} if settings.DEBUG else {}
+        }
+    )
+
+
 def setup_error_handlers(app):
     """Настройка обработчиков ошибок для приложения"""
+    # Кастомные исключения YESS
+    app.add_exception_handler(YESSBaseException, yess_exception_handler)
+    
+    # Старые обработчики для обратной совместимости
     app.add_exception_handler(AppException, app_exception_handler)
     app.add_exception_handler(HTTPException, http_exception_handler)
+    
+    # Обработка ошибок БД
+    app.add_exception_handler(SQLAlchemyError, sqlalchemy_exception_handler)
+    
+    # Общий обработчик
     app.add_exception_handler(Exception, general_exception_handler)
     
     return app

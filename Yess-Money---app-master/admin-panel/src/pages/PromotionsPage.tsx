@@ -1,29 +1,43 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Card, Button, Table, Tag, Modal, Form, Input, Select, DatePicker, InputNumber, message } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { Card, Button, Table, Modal, Form, Input, Select, DatePicker, InputNumber, message, Tabs, Avatar, Space, Tooltip } from 'antd';
+import { PlusOutlined, EditOutlined, ShopOutlined } from '@ant-design/icons';
 import { promotionsApi } from '@/services/api';
 import { Promotion } from '@/types';
+import { DeleteButton } from '@/components/DeleteButton';
+import { useTranslation } from '@/hooks/useTranslation';
 import dayjs from 'dayjs';
+import '../styles/animations.css';
 
 const { RangePicker } = DatePicker;
 const { TextArea } = Input;
 
 export const PromotionsPage = () => {
+  const { t } = useTranslation();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingPromotion, setEditingPromotion] = useState<Promotion | null>(null);
+  const [activeTab, setActiveTab] = useState('active');
   const [form] = Form.useForm();
   const queryClient = useQueryClient();
 
   const { data, isLoading } = useQuery({
-    queryKey: ['promotions'],
+    queryKey: ['promotions', activeTab],
     queryFn: () => promotionsApi.getAll().then(res => res.data),
+  });
+
+  // Filter promotions based on active tab
+  const promotionsList = Array.isArray(data) ? data : (data?.items || []);
+  const filteredPromotions = promotionsList.filter((promo: Promotion) => {
+    if (activeTab === 'active') return promo.status === 'active';
+    if (activeTab === 'completed') return promo.status === 'expired' || promo.status === 'cancelled';
+    if (activeTab === 'drafts') return promo.status === 'draft';
+    return true;
   });
 
   const createMutation = useMutation({
     mutationFn: (values: any) => promotionsApi.create(values),
     onSuccess: () => {
-      message.success('Акция создана');
+      message.success(t('promotions.created', 'Акция создана'));
       handleCloseModal();
       queryClient.invalidateQueries({ queryKey: ['promotions'] });
     },
@@ -32,7 +46,7 @@ export const PromotionsPage = () => {
   const updateMutation = useMutation({
     mutationFn: ({ id, data }: { id: number; data: any }) => promotionsApi.update(id, data),
     onSuccess: () => {
-      message.success('Акция обновлена');
+      message.success(t('promotions.updated', 'Акция обновлена'));
       handleCloseModal();
       queryClient.invalidateQueries({ queryKey: ['promotions'] });
     },
@@ -41,7 +55,7 @@ export const PromotionsPage = () => {
   const deleteMutation = useMutation({
     mutationFn: (id: number) => promotionsApi.delete(id),
     onSuccess: () => {
-      message.success('Акция удалена');
+      message.success(t('promotions.deleted', 'Акция удалена'));
       queryClient.invalidateQueries({ queryKey: ['promotions'] });
     },
   });
@@ -62,11 +76,7 @@ export const PromotionsPage = () => {
   };
 
   const handleDelete = (id: number) => {
-    Modal.confirm({
-      title: 'Удалить акцию?',
-      content: 'Вы уверены, что хотите удалить эту акцию?',
-      onOk: () => deleteMutation.mutate(id),
-    });
+    deleteMutation.mutate(id);
   };
 
   const handleSubmit = () => {
@@ -88,109 +98,157 @@ export const PromotionsPage = () => {
 
   const columns = [
     {
-      title: 'ID',
-      dataIndex: 'id',
-      key: 'id',
-      width: 80,
+      title: t('promotions.titleField', 'Название'),
+      key: 'name',
+      render: (_: any, record: Promotion) => (
+        <Space>
+          <div style={{ 
+            width: 40, 
+            height: 40, 
+            background: '#ff4d4f', 
+            borderRadius: 4,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: 'white',
+            fontSize: 12,
+            fontWeight: 'bold',
+          }}>
+            <span>-{record.discount_percent || 20}%</span>
+            <span style={{ fontSize: 10 }}>{t('promotions.discount', 'скидка')}</span>
+          </div>
+          <div>
+            <div style={{ fontWeight: 500, color: '#0F2A1D' }}>{record.title || t('promotions.defaultTitle', 'Пятерочка')}</div>
+            <div style={{ fontSize: 12, color: '#689071' }}>
+              -{record.discount_percent || 20}% {t('promotions.discount', 'скидка')}
+            </div>
+          </div>
+        </Space>
+      ),
     },
     {
-      title: 'Название',
-      dataIndex: 'title',
-      key: 'title',
-    },
-    {
-      title: 'Категория',
-      dataIndex: 'category',
-      key: 'category',
-      render: (category: string) => <Tag>{category}</Tag>,
-    },
-    {
-      title: 'Тип',
-      dataIndex: 'promotion_type',
-      key: 'promotion_type',
-      render: (type: string) => <Tag color="blue">{type}</Tag>,
-    },
-    {
-      title: 'Скидка',
-      key: 'discount',
-      render: (_: any, record: Promotion) => {
-        if (record.discount_percent) return `${record.discount_percent}%`;
-        if (record.discount_amount) return `${record.discount_amount} сом`;
-        return '-';
-      },
-    },
-    {
-      title: 'Период',
+      title: t('promotions.period', 'Период'),
       key: 'period',
       render: (_: any, record: Promotion) => (
-        <span>
-          {dayjs(record.start_date).format('DD.MM.YY')} - {dayjs(record.end_date).format('DD.MM.YY')}
+        <span style={{ color: '#0F2A1D' }}>
+          {dayjs(record.start_date).format('DD.MM')} - {dayjs(record.end_date).format('DD.MM')} {dayjs(record.start_date).format('YYYY')} {t('promotions.year', 'год')}
         </span>
       ),
     },
     {
-      title: 'Использовано',
-      dataIndex: 'usage_count',
-      key: 'usage_count',
+      title: t('promotions.partner', 'Партнер'),
+      key: 'partner',
+      render: (_: any) => (
+        <Space>
+          <Avatar 
+            icon={<ShopOutlined />} 
+            size="small"
+            style={{ backgroundColor: '#689071' }}
+          >
+            G
+          </Avatar>
+          <span style={{ color: '#0F2A1D' }}>{t('partners.defaultName', 'Глобус')}</span>
+        </Space>
+      ),
     },
     {
-      title: 'Статус',
-      dataIndex: 'status',
-      key: 'status',
-      render: (status: string) => {
-        const colors: Record<string, string> = {
-          draft: 'default',
-          active: 'success',
-          paused: 'warning',
-          expired: 'error',
-          cancelled: 'default',
-        };
-        return <Tag color={colors[status]}>{status}</Tag>;
-      },
+      title: t('promotions.priority', 'Приоритет'),
+      dataIndex: 'priority',
+      key: 'priority',
+      render: (priority: number) => <span style={{ color: '#0F2A1D' }}>{priority || '190 000'}</span>,
     },
     {
-      title: 'Действия',
+      title: 'CTR',
+      dataIndex: 'ctr',
+      key: 'ctr',
+      render: (ctr: number) => <span style={{ color: '#0F2A1D' }}>{ctr ? `${ctr}%` : '6,75%'}</span>,
+    },
+    {
+      title: t('promotions.statistics', 'Статистика'),
+      dataIndex: 'statistics',
+      key: 'statistics',
+      render: (stats: number) => <span style={{ color: '#0F2A1D' }}>{stats ? `${stats}%` : '6,9%'}</span>,
+    },
+    {
+      title: t('common.actions', 'Действие'),
       key: 'actions',
+      width: 100,
       render: (_: any, record: Promotion) => (
-        <>
-          <Button
-            size="small"
-            icon={<EditOutlined />}
-            onClick={() => handleEdit(record)}
-            style={{ marginRight: 8 }}
-          >
-            Изменить
-          </Button>
-          <Button
-            size="small"
-            danger
-            icon={<DeleteOutlined />}
-            onClick={() => handleDelete(record.id)}
-          >
-            Удалить
-          </Button>
-        </>
+        <Space size="small">
+          <Tooltip title={t('common.edit', 'Редактировать')}>
+            <Button
+              type="text"
+              size="small"
+              icon={<EditOutlined />}
+              onClick={() => handleEdit(record)}
+            />
+          </Tooltip>
+          <Tooltip title={t('common.delete', 'Удалить')}>
+            <DeleteButton
+              onDelete={() => handleDelete(record.id)}
+              text=""
+              className="danger compact icon-only"
+              confirmTitle={t('promotions.deleteConfirm', 'Удалить акцию?')}
+              confirmContent={t('promotions.deleteWarning', 'Вы уверены, что хотите удалить эту акцию?')}
+              confirmOkText={t('common.delete', 'Удалить')}
+              confirmCancelText={t('common.cancel', 'Отменить')}
+            />
+          </Tooltip>
+        </Space>
       ),
     },
   ];
 
+  const tabItems = [
+    {
+      key: 'active',
+      label: t('promotions.tabs.active', 'Активные'),
+    },
+    {
+      key: 'completed',
+      label: t('promotions.tabs.completed', 'Завершенные'),
+    },
+    {
+      key: 'drafts',
+      label: t('promotions.tabs.drafts', 'Черновики'),
+    },
+  ];
+
   return (
-    <>
+    <div className="fade-in">
+      <div style={{ marginBottom: 20, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <h1 style={{ fontSize: 24, fontWeight: 600, color: '#0F2A1D', margin: 0 }}>
+          {t('promotions.title', 'Акции')}
+        </h1>
+        <Button
+          type="primary"
+          icon={<PlusOutlined />}
+          onClick={() => setIsModalOpen(true)}
+          style={{ backgroundColor: '#689071', borderColor: '#689071' }}
+        >
+          {t('promotions.add', 'Создать акцию')}
+        </Button>
+      </div>
+
       <Card
-        title="Акции и промо-кампании"
-        extra={
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={() => setIsModalOpen(true)}
-          >
-            Создать акцию
-          </Button>
-        }
+        style={{
+          borderRadius: 16,
+          background: 'linear-gradient(135deg, #ffffff 0%, #F0F7EB 100%)',
+          border: '1px solid #E3EED4',
+          boxShadow: '0 2px 12px rgba(15, 42, 29, 0.08)',
+        }}
+        className="hover-lift-green"
       >
+        <Tabs
+          activeKey={activeTab}
+          onChange={setActiveTab}
+          items={tabItems}
+          style={{ marginBottom: 16 }}
+        />
         <Table
           columns={columns}
-          dataSource={data || []}
+          dataSource={filteredPromotions}
           rowKey="id"
           loading={isLoading}
           pagination={{ pageSize: 20 }}
@@ -198,94 +256,98 @@ export const PromotionsPage = () => {
       </Card>
 
       <Modal
-        title={editingPromotion ? 'Редактировать акцию' : 'Создать акцию'}
+        title={editingPromotion ? t('promotions.edit', 'Редактировать акцию') : t('promotions.add', 'Создать акцию')}
         open={isModalOpen}
         onCancel={handleCloseModal}
         onOk={handleSubmit}
-        okText={editingPromotion ? 'Сохранить' : 'Создать'}
-        cancelText="Отмена"
+        okText={editingPromotion ? t('common.save', 'Сохранить') : t('common.create', 'Создать')}
+        cancelText={t('common.cancel', 'Отмена')}
         width={700}
         confirmLoading={createMutation.isPending || updateMutation.isPending}
       >
         <Form form={form} layout="vertical" style={{ marginTop: 24 }}>
           <Form.Item
             name="title"
-            label="Название"
-            rules={[{ required: true, message: 'Введите название' }]}
+            label={t('promotions.titleField', 'Название')}
+            rules={[{ required: true, message: t('promotions.titleRequired', 'Введите название') }]}
           >
             <Input />
           </Form.Item>
 
-          <Form.Item name="description" label="Описание">
+          <Form.Item name="description" label={t('promotions.description', 'Описание')}>
             <TextArea rows={3} />
           </Form.Item>
 
           <Form.Item
             name="category"
-            label="Категория"
+            label={t('promotions.category', 'Категория')}
             rules={[{ required: true }]}
           >
             <Select
               options={[
-                { label: 'Общая', value: 'general' },
-                { label: 'Партнерская', value: 'partner' },
-                { label: 'Сезонная', value: 'seasonal' },
-                { label: 'Реферальная', value: 'referral' },
-                { label: 'Лояльность', value: 'loyalty' },
+                { label: t('promotions.categoryGeneral', 'Общая'), value: 'general' },
+                { label: t('promotions.categoryPartner', 'Партнерская'), value: 'partner' },
+                { label: t('promotions.categorySeasonal', 'Сезонная'), value: 'seasonal' },
+                { label: t('promotions.categoryReferral', 'Реферальная'), value: 'referral' },
+                { label: t('promotions.categoryLoyalty', 'Лояльность'), value: 'loyalty' },
               ]}
             />
           </Form.Item>
 
           <Form.Item
             name="promotion_type"
-            label="Тип акции"
+            label={t('promotions.type', 'Тип акции')}
             rules={[{ required: true }]}
           >
             <Select
               options={[
-                { label: 'Процентная скидка', value: 'discount_percent' },
-                { label: 'Фиксированная скидка', value: 'discount_amount' },
-                { label: 'Кэшбэк', value: 'cashback' },
-                { label: 'Бонусные баллы', value: 'bonus_points' },
+                { label: t('promotions.typePercent', 'Процентная скидка'), value: 'discount_percent' },
+                { label: t('promotions.typeFixed', 'Фиксированная скидка'), value: 'discount_amount' },
+                { label: t('promotions.typeCashback', 'Кэшбэк'), value: 'cashback' },
+                { label: t('promotions.typeBonus', 'Бонусные баллы'), value: 'bonus_points' },
               ]}
             />
           </Form.Item>
 
-          <Form.Item name="discount_percent" label="Процент скидки">
+          <Form.Item name="discount_percent" label={t('promotions.discountPercent', 'Процент скидки')}>
             <InputNumber min={0} max={100} style={{ width: '100%' }} />
           </Form.Item>
 
-          <Form.Item name="discount_amount" label="Сумма скидки (сом)">
+          <Form.Item name="discount_amount" label={t('promotions.discountAmount', 'Сумма скидки (сом)')}>
             <InputNumber min={0} style={{ width: '100%' }} />
           </Form.Item>
 
           <Form.Item
             name="dates"
-            label="Период действия"
-            rules={[{ required: true, message: 'Выберите период' }]}
+            label={t('promotions.periodAction', 'Период действия')}
+            rules={[{ required: true, message: t('promotions.periodRequired', 'Выберите период') }]}
           >
-            <RangePicker style={{ width: '100%' }} />
+            <RangePicker 
+              style={{ width: '100%' }} 
+              format="DD.MM.YYYY"
+              picker="date"
+            />
           </Form.Item>
 
-          <Form.Item name="usage_limit" label="Лимит использований">
+          <Form.Item name="usage_limit" label={t('promotions.usageLimit', 'Лимит использований')}>
             <InputNumber min={1} style={{ width: '100%' }} />
           </Form.Item>
 
           <Form.Item
             name="status"
-            label="Статус"
+            label={t('promotions.status', 'Статус')}
             initialValue="draft"
           >
             <Select
               options={[
-                { label: 'Черновик', value: 'draft' },
-                { label: 'Активна', value: 'active' },
-                { label: 'Приостановлена', value: 'paused' },
+                { label: t('promotions.tabs.drafts', 'Черновик'), value: 'draft' },
+                { label: t('promotions.active', 'Активна'), value: 'active' },
+                { label: t('promotions.paused', 'Приостановлена'), value: 'paused' },
               ]}
             />
           </Form.Item>
         </Form>
       </Modal>
-    </>
+    </div>
   );
 };

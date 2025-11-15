@@ -9,7 +9,10 @@ services:
     restart: always
     environment:
       - ENV=production
-      - DATABASE_URL=postgresql://yess_user:secure_password@postgres/yess_db
+      - DATABASE_URL=${DATABASE_URL}
+      - REDIS_URL=${REDIS_URL}
+      - SECRET_KEY=${SECRET_KEY}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
     ports:
       - "8000:8000"
     depends_on:
@@ -18,15 +21,17 @@ services:
     volumes:
       - ./yess-backend:/app
       - ./uploads:/app/uploads
+    env_file:
+      - .env.production
 
   postgres:
     image: postgres:13
     container_name: yess-postgres-prod
     restart: always
     environment:
-      - POSTGRES_DB=yess_db
-      - POSTGRES_USER=yess_user
-      - POSTGRES_PASSWORD=secure_password
+      - POSTGRES_DB=${POSTGRES_DB:-yess_db}
+      - POSTGRES_USER=${POSTGRES_USER:-yess_user}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:

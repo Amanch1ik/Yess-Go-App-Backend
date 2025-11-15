@@ -1,0 +1,37 @@
+:root {
+  /* Yess!Go Color Scheme from Moodboard */
+  --color-primary-dark: #217A44;
+  --color-primary: #37946e;
+  --color-primary-medium: #69bb7b;
+  --color-primary-light: #bee3b6;
+  --color-primary-pale: #e3eed4;
+  --color-primary-ultra-light: #f4faf6;
+
+  /* Primary accent color */
+  --color-primary: #37946e;
+  --color-primary-dark: #217A44;
+  --color-primary-light: #bee3b6;
+  --color-primary-pale: #e3eed4;
+  --color-text-dark: #223732;
+  --color-text-light: #37946e;
+
+  --color-success: #52c41a;
+  --color-error: #ff4d4f;
+  --color-warning: #faad14;
+  --color-info: #1890ff;
+
+  --gradient-primary: linear-gradient(135deg, #37946e 0%, #69bb7b 70%, #f4faf6 100%);
+  --gradient-primary-soft: linear-gradient(135deg, #bee3b6 0%, #f4faf6 100%);
+  --gradient-card: linear-gradient(135deg, #ffffff 0%, #e3eed4 100%);
+
+  /* Legacy colors (for compatibility) */
+  --color-dark-green: #217A44;
+  --color-forest-green: #37946e;
+  --color-medium-green: #69bb7b;
+  --color-light-olive-green: #bee3b6;
+  --color-pale-green: #e3eed4;
+  --color-bg-green: #f4faf6;
+  --color-white: #ffffff;
+  --color-black: #000000;
+}
+

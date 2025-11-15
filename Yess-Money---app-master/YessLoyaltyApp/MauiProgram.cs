@@ -94,6 +94,10 @@ public static class MauiProgram
         // API и аутентификация
         services.AddSingleton<ApiService>();
         services.AddSingleton<ExternalAuthService>();
+        
+        // Безопасность
+        services.AddSingleton<IAdvancedSecurityService, AdvancedSecurityService>();
+        services.AddSingleton<IBiometricService, BiometricService>();
     }
 
     private static void ConfigureViewModels(IServiceCollection services)

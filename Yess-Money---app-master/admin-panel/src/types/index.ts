@@ -44,10 +44,14 @@ export interface Order {
   id: number;
   user_id: number;
   partner_id: number;
-  order_total: number;
-  discount: number;
-  final_amount: number;
+  order_total: number | string;
+  discount: number | string;
+  final_amount: number | string;
+  status?: 'pending' | 'completed' | 'cancelled' | 'refunded';
+  payment_method?: string;
+  currency?: string;
   created_at: string;
+  updated_at?: string;
 }
 
 export interface Wallet {
@@ -81,6 +85,13 @@ export interface Achievement {
   created_at: string;
 }
 
+export interface AchievementStats {
+  total_achievements: number;
+  active_achievements: number;
+  by_category: Record<string, number>;
+  by_rarity: Record<string, number>;
+}
+
 export interface Promotion {
   id: number;
   title: string;
@@ -109,5 +120,48 @@ export interface DashboardStats {
 export interface AdminUser {
   id: string;
   email: string;
+  username?: string;
+  avatar_url?: string;
   role: 'admin' | 'partner_admin';
+}
+
+export interface AdminNotification {
+  id: number;
+  title: string;
+  message: string;
+  type: string;
+  segment: string;
+  scheduled_for?: string;
+  sent_at?: string;
+  created_at: string;
+  is_read?: boolean;
+}
+
+export interface Referral {
+  id: number;
+  referrer_id: number;
+  referred_id: number;
+  bonus_amount: number;
+  status: 'pending' | 'completed' | 'cancelled';
+  created_at: string;
+}
+
+export interface AuditLog {
+  id: number;
+  user_id: number;
+  action: string;
+  resource_type: string;
+  resource_id: number;
+  details: Record<string, any>;
+  ip_address?: string;
+  user_agent?: string;
+  created_at: string;
+}
+
+export interface SettingsData {
+  categories: any[];
+  cities: any[];
+  limits: Record<string, any>;
+  api_keys: any[];
+  [key: string]: any;
 }

@@ -1,0 +1,80 @@
+/* Цветовая палитра Yess!Go согласно Mood Board */
+
+:root {
+  /* Yess!Go Color Scheme from Moodboard - точные цвета из moodboard */
+  --color-primary-very-dark: #0F2A1D;  /* Very dark green */
+  --color-primary-dark: #375534;      /* Dark green */
+  --color-primary-medium: #689071;    /* Medium green */
+  --color-primary-light: #AEC380;     /* Light green */
+  --color-primary-pale: #E3EED4;      /* Very light green/off-white */
+  
+  /* Primary accent colors */
+  --color-primary: #689071;
+  --color-primary-dark: #375534;
+  --color-primary-light: #AEC380;
+  --color-primary-pale: #E3EED4;
+  --color-text-dark: #0F2A1D;
+  --color-text-light: #689071;
+
+  --color-success: #52c41a;
+  --color-error: #ff4d4f;
+  --color-warning: #faad14;
+  --color-info: #1890ff;
+
+  --gradient-primary: linear-gradient(135deg, #0F2A1D 0%, #375534 25%, #689071 50%, #AEC380 75%, #E3EED4 100%);
+  --gradient-primary-soft: linear-gradient(135deg, #AEC380 0%, #E3EED4 100%);
+  --gradient-card: linear-gradient(135deg, #ffffff 0%, #E3EED4 100%);
+  
+  /* Legacy Yess!Go colors (for compatibility) - обновлены по moodboard */
+  --yess-dark-green: #0F2A1D;
+  --yess-forest-green: #375534;
+  --yess-medium-green: #689071;
+  --yess-light-green: #AEC380;
+  --yess-pale-green: #E3EED4;
+  --yess-bg-green: #E3EED4;
+  
+  /* Дополнительные цвета для контраста */
+  --yess-white: #FFFFFF;
+  --yess-black: #000000;
+  
+  /* Цвета для состояний */
+  --yess-success: #52c41a;
+  --yess-error: #ff4d4f;
+  --yess-warning: #faad14;
+  --yess-info: #1890ff;
+  
+  /* Градиенты - обновлены по moodboard */
+  --yess-gradient-dark: linear-gradient(135deg, #0F2A1D 0%, #375534 100%);
+  --yess-gradient-medium: linear-gradient(135deg, #375534 0%, #689071 100%);
+  --yess-gradient-light: linear-gradient(135deg, #689071 0%, #AEC380 100%);
+  --yess-gradient-full: linear-gradient(135deg, #0F2A1D 0%, #375534 25%, #689071 50%, #AEC380 75%, #E3EED4 100%);
+  --yess-gradient-bg: linear-gradient(135deg, #E3EED4 0%, #ffffff 100%);
+  --yess-gradient-button: linear-gradient(135deg, #689071 0%, #AEC380 100%);
+  --yess-gradient-button-hover: linear-gradient(135deg, #375534 0%, #689071 100%);
+  
+  /* Тени */
+  --yess-shadow-sm: 0 2px 8px rgba(33, 122, 68, 0.1);
+  --yess-shadow-md: 0 4px 12px rgba(33, 122, 68, 0.15);
+  --yess-shadow-lg: 0 8px 24px rgba(33, 122, 68, 0.2);
+  --yess-shadow-xl: 0 20px 60px rgba(33, 122, 68, 0.25);
+  --yess-shadow-green: 0 4px 16px rgba(55, 148, 110, 0.3);
+  --yess-shadow-green-lg: 0 8px 24px rgba(55, 148, 110, 0.4);
+}
+
+/* Утилиты для использования цветов */
+.yess-text-dark { color: var(--yess-dark-green); }
+.yess-text-forest { color: var(--yess-forest-green); }
+.yess-text-medium { color: var(--yess-medium-green); }
+.yess-text-light { color: var(--yess-light-green); }
+.yess-text-pale { color: var(--yess-pale-green); }
+
+.yess-bg-dark { background-color: var(--yess-dark-green); }
+.yess-bg-forest { background-color: var(--yess-forest-green); }
+.yess-bg-medium { background-color: var(--yess-medium-green); }
+.yess-bg-light { background-color: var(--yess-light-green); }
+.yess-bg-pale { background-color: var(--yess-pale-green); }
+.yess-bg-gradient { background: var(--yess-gradient-full); }
+
+.yess-border { border-color: var(--yess-medium-green); }
+.yess-border-light { border-color: var(--yess-pale-green); }
+
